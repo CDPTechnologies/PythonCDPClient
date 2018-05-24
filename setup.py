@@ -25,7 +25,7 @@ setup(
     description='Provides an API for CDP applications to fetch application structure and cdp object values',
 	long_description=readme(),
     test_suite='nose.collector',
-    tests_require=['nose', 'nose-cover3'],
+    tests_require=['nose'],
     include_package_data=True,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
