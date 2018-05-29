@@ -18,11 +18,19 @@ value1_node.info.node_type = proto.CDP_PROPERTY
 value1_node.info.value_type = proto.eDOUBLE
 value1_node.info.flags = proto.Info.eNodeIsLeaf
 
+comp1_node = proto.Node()
+comp1_node.info.node_id = 9
+comp1_node.info.name = "Comp1"
+comp1_node.info.node_type = proto.CDP_COMPONENT
+comp1_node.info.value_type = proto.eUNDEFINED
+comp1_node.info.flags = proto.Info.eValueIsReadOnly
+
 app1_node = proto.Node()
 app1_node.info.node_id = 1
 app1_node.info.name = "App1"
 app1_node.info.node_type = proto.CDP_APPLICATION
 app1_node.info.value_type = proto.eUNDEFINED
+app1_node.info.is_local = True
 app1_node.info.flags = proto.Info.eValueIsReadOnly | proto.Info.eNodeIsLeaf
 
 app2_node = proto.Node()

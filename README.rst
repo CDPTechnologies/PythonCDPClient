@@ -39,18 +39,19 @@ Before all examples, you need:
 
     from cdp_client import cdp
 
-
 Global API
 ~~~~~~~~~~
 
-Client(host, port)
-^^^^^^^^^^^^^^^^^^
+Client(host, port, auto_reconnect)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Arguments
 
     host - String for hosts ip address
 
     port - Optional port number to connect to. If not specified default port 7689 is used.
+
+    auto_reconnect - Optional argument to enable/disable automatic reconnect when connection is lost. Defaults to True if not specified.
 
 - Returns
 
@@ -62,14 +63,13 @@ Client(host, port)
 
         client = cdp.Client('127.0.0.1')
 
-
 Instance Methods / Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 client.root_node()
 ^^^^^^^^^^^^^^^^^^
 
-Gets the root Node object from the connected application. The root node is the top-level node that contains the application connected and information about other applications visible on the network.
+Gets the application Node object of the connected application.
 
 - Returns
 
@@ -105,23 +105,13 @@ client.run_event_loop()
 
 Runs the event loop that serves network communication layer for incoming/outgoing data. **This is a blocking call that must be run for any communication to happen.** The method can be cancelled by calling disconnect.
 
-
 client.disconnect()
 ^^^^^^^^^^^^^^^^^^^
 
 Stops the event loop and closes the connection to connected application. This method also releases the blocking run_event_loop call.
 
-
 Instance Methods / Node
 ~~~~~~~~~~~~~~~~~~~~~~~
-
-node.id()
-^^^^^^^^^
-
-- Returns
-
-    The unique identifier of the Node object. Identifiers are only unique within the same application.
-
 
 node.name()
 ^^^^^^^^^^^
@@ -130,6 +120,19 @@ node.name()
 
     The name of the Node object. Names in a parent node are all unique.
 
+node.path()
+^^^^^^^^^^^
+
+- Returns
+
+    A dot separated path of the Node object starting with application name.
+
+node.parent()
+^^^^^^^^^^^^^
+
+- Returns
+
+    The parent Node object.
 
 node.type()
 ^^^^^^^^^^^
@@ -138,14 +141,12 @@ node.type()
 
     The type of the Node object returned as one of the cdp.NodeType values.
 
-
 node.last_value()
 ^^^^^^^^^^^^^^^^^
 
 - Returns
 
     The last known value received by the Node object.
-
 
 node.set_value(value, timestamp)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -158,7 +159,6 @@ Sets a new value for the Node object. Timestamp will be ignored in current imple
 
     timestamp - UTC time in nanoseconds since Epoch
 
-
 node.is_read_only()
 ^^^^^^^^^^^^^^^^^^^
 
@@ -166,14 +166,12 @@ node.is_read_only()
 
     False if nodes value cannot be set, otherwise True.
 
-
 node.is_leaf()
 ^^^^^^^^^^^^^^
 
 - Returns
 
     True if node doesn't have any children, otherwise False.
-
 
 node.child(name)
 ^^^^^^^^^^^^^^^^

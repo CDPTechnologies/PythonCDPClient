@@ -16,7 +16,7 @@ class RequestsTester(unittest.TestCase):
     def test_adding_one_request(self):
         self._requests.add(1, 2, 3)
         self.assertEqual(len(self._requests.get()), 1)
-        self.assertEqual(self._requests.get()[0]['node_id'], 1)
+        self.assertEqual(self._requests.get()[0]['node_path'], 1)
         self.assertEqual(self._requests.get()[0]['resolve_callbacks'], [2])
         self.assertEqual(self._requests.get()[0]['reject_callbacks'], [3])
 
@@ -24,7 +24,7 @@ class RequestsTester(unittest.TestCase):
         self._requests.add(1, 2, 3)
         self._requests.add(1, 2, 3)
         self.assertEqual(len(self._requests.get()), 1)
-        self.assertEqual(self._requests.get()[0]['node_id'], 1)
+        self.assertEqual(self._requests.get()[0]['node_path'], 1)
         self.assertEqual(self._requests.get()[0]['resolve_callbacks'], [2])
         self.assertEqual(self._requests.get()[0]['reject_callbacks'], [3])
 
@@ -34,7 +34,7 @@ class RequestsTester(unittest.TestCase):
         self.assertEqual(len(self._requests.get()), 1)
         self.assertEqual(len(self._requests.get()[0]['resolve_callbacks']), 2)
         self.assertEqual(len(self._requests.get()[0]['reject_callbacks']), 2)
-        self.assertEqual(self._requests.get()[0]['node_id'], 1)
+        self.assertEqual(self._requests.get()[0]['node_path'], 1)
         self.assertEqual(self._requests.get()[0]['resolve_callbacks'], [2, 4])
         self.assertEqual(self._requests.get()[0]['reject_callbacks'], [3, 5])
 
@@ -44,10 +44,10 @@ class RequestsTester(unittest.TestCase):
         self.assertEqual(len(self._requests.get()), 2)
         self.assertEqual(len(self._requests.get()[0]['resolve_callbacks']), 1)
         self.assertEqual(len(self._requests.get()[1]['reject_callbacks']), 1)
-        self.assertEqual(self._requests.get()[0]['node_id'], 1)
+        self.assertEqual(self._requests.get()[0]['node_path'], 1)
         self.assertEqual(self._requests.get()[0]['resolve_callbacks'], [2])
         self.assertEqual(self._requests.get()[0]['reject_callbacks'], [3])
-        self.assertEqual(self._requests.get()[1]['node_id'], 2)
+        self.assertEqual(self._requests.get()[1]['node_path'], 2)
         self.assertEqual(self._requests.get()[1]['resolve_callbacks'], [4])
         self.assertEqual(self._requests.get()[1]['reject_callbacks'], [5])
 
@@ -56,7 +56,7 @@ class RequestsTester(unittest.TestCase):
         self._requests.add(2, 4, 5)
         self._requests.add(3, 4, 5)
         request = self._requests.find(2)
-        self.assertEqual(request['node_id'], 2)
+        self.assertEqual(request['node_path'], 2)
         self.assertEqual(request['resolve_callbacks'], [4])
         self.assertEqual(request['reject_callbacks'], [5])
 

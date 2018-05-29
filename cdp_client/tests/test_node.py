@@ -12,7 +12,7 @@ class NodeTester(unittest.TestCase):
         self._connection = None
 
     def setUp(self):
-        self._connection = cdp.Connection("foo", "bar")
+        self._connection = cdp.Connection("foo", "bar", False)
         self._root_node = copy(data.system_node)
         self._root_node.node.extend([data.app1_node, data.app2_node])
 
@@ -21,49 +21,53 @@ class NodeTester(unittest.TestCase):
         del self._root_node
 
     def test_node_info(self):
-        node = cdp.Node(self._connection, data.app1_node)
-        self.assertEqual(node.id(), data.app1_node.info.node_id)
+        node = cdp.Node(None, self._connection, data.app1_node)
+        self.assertEqual(node._id(), data.app1_node.info.node_id)
         self.assertEqual(node.name(), data.app1_node.info.name)
         self.assertEqual(node.type(), cdp.NodeType.APPLICATION)
-        self.assertTrue(node.is_leaf())
-        self.assertTrue(node.is_read_only())
+        self.assertEqual(node.is_leaf(), True)
+        self.assertEqual(node.is_read_only(), True)
+        self.assertEqual(node.path(), node.name())
+
+        sub_node = cdp.Node(node, self._connection, data.app2_node)
+        self.assertEqual(sub_node.path(), node.path() + '.' + sub_node.name())
 
     def test_value(self):
-        node = cdp.Node(self._connection, data.value1_node)
+        node = cdp.Node(None, self._connection, data.value1_node)
         node._update_value(data.value1)
         self.assertEquals(node.last_value(), data.value1.d_value)
 
     @mock.patch.object(cdp.Connection, 'send_value')
     def test_value_setter(self, mock_send_value):
-        node = cdp.Node(self._connection, data.value1_node)
+        node = cdp.Node(None, self._connection, data.value1_node)
         node.set_value(data.value1.d_value, data.value1.timestamp)
         mock_send_value.assert_called_with(data.value1)
 
     @mock.patch.object(cdp.Connection, 'send_structure_request')
     def test_child_getter_when_child_is_leaf(self, mock_send_structure_request):
         children = []
-        node = cdp.Node(self._connection, self._root_node)
+        node = cdp.Node(None, self._connection, self._root_node)
         node.child(data.app1_node.info.name).then(lambda n: children.append(n))
         mock_send_structure_request.assert_not_called()
-        self.assertEqual(children[0].id(), data.app1_node.info.node_id)
+        self.assertEqual(children[0]._id(), data.app1_node.info.node_id)
         self.assertEqual(children[0].name(), data.app1_node.info.name)
         self.assertEqual(children[0].type(), cdp.NodeType.APPLICATION)
 
     @mock.patch.object(cdp.Connection, 'send_structure_request')
     def test_child_getter_when_child_is_not_leaf(self, mock_send_structure_request):
         children = []
-        node = cdp.Node(self._connection, self._root_node)
-        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(cdp.Node(self._connection, data.app2_node)))
+        node = cdp.Node(None, self._connection, self._root_node)
+        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(data.app2_node))
         node.child(data.app2_node.info.name).then(lambda n: children.append(n))
-        mock_send_structure_request.assert_called_once_with(data.app2_node.info.node_id)
-        self.assertEqual(children[0].id(), data.app2_node.info.node_id)
+        mock_send_structure_request.assert_called_once_with(data.app2_node.info.node_id, node.path() + '.' + data.app2_node.info.name)
+        self.assertEqual(children[0]._id(), data.app2_node.info.node_id)
         self.assertEqual(children[0].name(), data.app2_node.info.name)
         self.assertEqual(children[0].type(), cdp.NodeType.APPLICATION)
 
     @mock.patch.object(cdp.Connection, 'send_structure_request')
     def test_invalid_child_getter(self, mock_send_structure_request):
         errors = []
-        node = cdp.Node(self._connection, self._root_node)
+        node = cdp.Node(None, self._connection, self._root_node)
         node.child("invalid").catch(lambda e: errors.append(e))
         self.assertEqual(len(errors), 1)
         mock_send_structure_request.assert_not_called()
@@ -71,19 +75,19 @@ class NodeTester(unittest.TestCase):
     @mock.patch.object(cdp.Connection, 'send_structure_request')
     def test_children_getter(self, mock_send_structure_request):
         children = []
-        node = cdp.Node(self._connection, self._root_node)
-        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(cdp.Node(self._connection, data.app2_node)))
+        node = cdp.Node(None, self._connection, self._root_node)
+        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(data.app2_node))
         node.children().then(lambda n: children.extend(n))
-        mock_send_structure_request.assert_called_once_with(data.app2_node.info.node_id)
+        mock_send_structure_request.assert_called_once_with(data.app2_node.info.node_id, node.path() + '.' + data.app2_node.info.name)
         self.assertEquals(len(children), len(self._root_node.node))
 
     @mock.patch.object(cdp.Connection, 'send_structure_request')
     def test_children_iterator(self, mock_send_structure_request):
         children = []
-        node = cdp.Node(self._connection, self._root_node)
-        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(cdp.Node(self._connection, data.app2_node)))
+        node = cdp.Node(None, self._connection, self._root_node)
+        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(data.app2_node))
         node.for_each_child(lambda n: children.append(n))
-        mock_send_structure_request.assert_called_once_with(data.app2_node.info.node_id)
+        mock_send_structure_request.assert_called_once_with(data.app2_node.info.node_id, node.path() + '.' + data.app2_node.info.name)
         self.assertEquals(len(children), len(self._root_node.node))
 
     @mock.patch.object(cdp.Connection, 'send_structure_request')
@@ -96,9 +100,9 @@ class NodeTester(unittest.TestCase):
         new_children = []
         nodes_added = []
         nodes_removed = []
-        node = cdp.Node(self._connection, self._root_node)
+        node = cdp.Node(None, self._connection, self._root_node)
         node.subscribe_to_structure_changes(on_change)
-        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(cdp.Node(self._connection, data.app2_node)))
+        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(data.app2_node))
         node.children().then(lambda n: old_children.extend(n))
 
         #change the structure - remove and add a node
@@ -106,10 +110,11 @@ class NodeTester(unittest.TestCase):
         node_to_add = data.app3_node
         self._root_node.node.remove(node_to_remove)
         self._root_node.node.extend([node_to_add])
-        node._update_structure(self._root_node)
+        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(self._root_node))
+        node._update()
 
         #verify
-        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(cdp.Node(self._connection, node_to_add)))
+        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(node_to_add))
         node.children().then(lambda n: new_children.extend(n))
         self.assertEquals(len(old_children), len(new_children))
         found = False
@@ -126,7 +131,7 @@ class NodeTester(unittest.TestCase):
 
         nodes_added = []
         nodes_removed = []
-        node = cdp.Node(self._connection, self._root_node)
+        node = cdp.Node(None, self._connection, self._root_node)
         node.subscribe_to_structure_changes(on_change)
         node.unsubscribe_from_structure_changes(on_change)
 
@@ -147,9 +152,9 @@ class NodeTester(unittest.TestCase):
 
         actual_values = []
         timestamps = []
-        node = cdp.Node(self._connection, data.value1_node)
+        node = cdp.Node(None, self._connection, data.value1_node)
         node.subscribe_to_value_changes(on_change)
-        mock_send_value_request.assert_called_once_with(node.id())
+        mock_send_value_request.assert_called_once_with(node._id())
 
         expected_values = [data.value1, data.value2]
         for value in expected_values:
@@ -168,10 +173,10 @@ class NodeTester(unittest.TestCase):
             values.append(value)
 
         values = []
-        node = cdp.Node(self._connection, data.value1_node)
+        node = cdp.Node(None, self._connection, data.value1_node)
         node.subscribe_to_value_changes(on_change)
-        mock_send_value_request.assert_called_once_with(node.id())
+        mock_send_value_request.assert_called_once_with(node._id())
         node.unsubscribe_from_value_changes(on_change)
-        mock_send_value_unrequest.assert_called_once_with(node.id())
+        mock_send_value_unrequest.assert_called_once_with(node._id())
         node._update_value(data.value1)
         self.assertEquals(len(values), 0)
