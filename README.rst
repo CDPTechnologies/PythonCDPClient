@@ -69,7 +69,7 @@ Instance Methods / Client
 client.root_node()
 ^^^^^^^^^^^^^^^^^^
 
-Gets the root Node object from the connected application. The root node is the top-level node that contains the application connected and information about other applications visible on the network.
+Gets the application Node object of the connected application.
 
 - Returns
 
