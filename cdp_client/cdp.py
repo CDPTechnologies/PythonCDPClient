@@ -305,11 +305,11 @@ class Connection:
         return self._node_tree
 
     def send_structure_request(self, node_id, node_path):
-        def send(resolve, reject):
-            self._structure_requests.add(node_path, resolve, reject)
-            if self._is_connected:
-                self._compose_and_send_structure_request(node_id)
-        return Promise(send)
+        p = Promise()
+        self._structure_requests.add(node_path, p)
+        if self._is_connected:
+            self._compose_and_send_structure_request(node_id)
+        return p
 
     def send_value_request(self, node_id):
         self._compose_and_send_value_request(node_id)
@@ -329,6 +329,7 @@ class Connection:
 
     def close(self):
         self._auto_reconnect = False
+        self._cleanup_queued_requests(ConnectionError('Connection was closed'))
         self._ws.close()
 
     def _connect(self, url):
@@ -397,7 +398,7 @@ class Connection:
     def _parse_hello_message(self, message):
         data = proto.Hello()
         data.ParseFromString(message)
-        if data.compat_version == 1 and data.incremental_version == 0:
+        if data.compat_version == 1:
             return True
         logging.info('Unsupported protocol version ' + str(data.compat_version) + '.' + str(data.incremental_version))
         return False
@@ -409,8 +410,8 @@ class Connection:
             request = self._structure_requests.find(node_path)  # requests are stored with node path because node id can change between application reconnect
             if request is not None:
                 self._structure_requests.remove(node_path)
-                for request in request['resolve_callbacks']:
-                    request(structure)
+                for p in request['promise']:
+                    p.do_resolve(structure)
 
     def _send_queued_requests(self):
         for request in self._structure_requests.get():
@@ -514,7 +515,8 @@ class NodeTree:
                     return app
             return None
 
-        self._root_node = Node(None, self._connection, find_local_app(system_structure.node))
+        if not self._root_node:
+            self._root_node = Node(None, self._connection, find_local_app(system_structure.node))
         return Promise(lambda resolve, reject: resolve(self._root_node))
 
     def _get_root_node(self, system_structure):
@@ -531,16 +533,14 @@ class Requests:
     def get(self):
         return self._requests
 
-    def add(self, node_path, resolve, reject):  # use node_path instead of node_id as this doesn't change after reconnect
+    def add(self, node_path, promise):  # use node_path instead of node_id as this doesn't change after reconnect
         request = self.find(node_path)
         if request is None:
-            request = {'node_path': node_path, 'resolve_callbacks': [resolve], 'reject_callbacks': [reject]}
+            request = {'node_path': node_path, 'promise': [promise]}
             self._requests.append(request)
         else:
-            if resolve not in request['resolve_callbacks']:
-                request['resolve_callbacks'].append(resolve)
-            if reject not in request['reject_callbacks']:
-                request['reject_callbacks'].append(reject)
+            if promise not in request['promise']:
+                request['promise'].append(promise)
 
     def find(self, node_path):
         for r in self._requests:
@@ -554,6 +554,6 @@ class Requests:
 
     def clear(self, error=UnknownError('Something has went wrong')):
         for request in self._requests:
-            for r in request['reject_callbacks']:
-                r(error)
+            for p in request['promise']:
+                p.do_reject(error)
         del self._requests[:]

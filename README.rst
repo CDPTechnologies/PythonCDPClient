@@ -1,8 +1,8 @@
 CDP-Client
 ==========
 
-A simple python interface to communicate with CDP applications to retrieve application structure and object values. The API makes heavy use of promise library for asynchronous operations. For more information see https://pypi.python.org/pypi/promise
-
+A simple python interface for the CDP Studio development platform that allows Python scripts to interact with CDP Applications - retrieve CDP Application structures and read-write object values. For more information about CDP Studio see https://cdpstudio.com/
+The API makes heavy use of promise library for asynchronous operations. For more information see https://pypi.python.org/pypi/promise
 
 Installation
 ------------

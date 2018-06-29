@@ -10,14 +10,14 @@ def readme():
 		
 setup(
     name='cdp-client',
-    version='1.0.2',
+    version='1.0.3',
     packages=find_packages(),
     install_requires=[
         'promise>=2.1',
         'websocket-client>=0.47.0',
         'protobuf>=3.5.2',
         'mock>=2.0.0'],
-    keywords=["cdp cdpstudio client cdp-client cdp_client"],
+    keywords=["cdp cdpstudio studio client cdp-client cdp_client"],
     url='https://github.com/CDPTechnologies/PythonCDPClient',
     license='MIT',
     author='CDP Technologies AS',
