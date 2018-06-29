@@ -104,8 +104,8 @@ class ConnectionTester(unittest.TestCase):
     def test_connected_state_is_unset_when_receiving_hello_message_with_incorrect_version(self):
         data = proto.Hello()
         data.system_name = "foo"
-        data.compat_version = 1
-        data.incremental_version = 1
+        data.compat_version = 2
+        data.incremental_version = 0
         self.assertEquals(self._connection._is_connected, False)
         self._connection._handle_hello_message(None, data.SerializeToString())
         self.assertEquals(self._connection._is_connected, False)

@@ -10,7 +10,7 @@ def readme():
 		
 setup(
     name='cdp-client',
-    version='1.0.3',
+    version='1.0.4',
     packages=find_packages(),
     install_requires=[
         'promise>=2.1',
@@ -22,7 +22,7 @@ setup(
     license='MIT',
     author='CDP Technologies AS',
     author_email='info@cdptech.com',
-    description='Provides an API for CDP applications to fetch application structure and cdp object values',
+    description='Provides an API that allows to interact with CDP applications',
 	long_description=readme(),
     test_suite='nose.collector',
     tests_require=['nose'],
