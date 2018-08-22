@@ -78,10 +78,10 @@ def create_app_structure_response():
     return response
 
 
-def create_app_structure_change_response():
+def create_structure_change_response(node_id):
     response = proto.Container()
     response.message_type = proto.Container.eStructureChangeResponse
-    response.structure_change_response.extend([app1_node.info.node_id])
+    response.structure_change_response.extend([node_id])
     return response
 
 
@@ -98,3 +98,75 @@ def create_error_response():
     response.error.code = proto.eINVALID_REQUEST
     response.error.text = "foo"
     return response
+
+
+def create_value_request(node_id):
+    request = proto.Container()
+    request.message_type = proto.Container.eGetterRequest
+    value = proto.ValueRequest()
+    value.node_id = node_id
+    value.fs = 5
+    request.getter_request.extend([value])
+    return request
+
+
+def create_value_unrequest(node_id):
+    request = proto.Container()
+    request.message_type = proto.Container.eGetterRequest
+    value = proto.ValueRequest()
+    value.node_id = node_id
+    value.fs = 5
+    value.stop = True
+    request.getter_request.extend([value])
+    return request
+
+
+def create_time_request():
+    request = proto.Container()
+    request.message_type = proto.Container.eCurrentTimeRequest
+    return request
+
+
+def create_time_response(time):
+    response = proto.Container()
+    response.message_type = proto.Container.eCurrentTimeResponse
+    response.current_time_response = time
+    return response
+
+
+def create_valid_hello_response():
+    response = proto.Hello()
+    response.system_name = "foo"
+    response.compat_version = 1
+    response.incremental_version = 0
+    return response
+
+
+def create_invalid_hello_response():
+    response = proto.Hello()
+    response.system_name = "foo"
+    response.compat_version = 2
+    response.incremental_version = 0
+    return response
+
+
+def create_structure_request(node_id = None):
+    request = proto.Container()
+    request.message_type = proto.Container.eStructureRequest
+    if node_id is not None:
+        request.structure_request.append(node_id)
+    return request
+
+
+def create_setter_request(variant_value):
+    request = proto.Container()
+    request.message_type = proto.Container.eSetterRequest
+    request.setter_request.extend([variant_value])
+    return request
+
+
+def create_structure_change_request(node_id):
+    request = proto.Container()
+    request.message_type = proto.Container.eStructureRequest
+    request.structure_request.append(node_id)
+    return request

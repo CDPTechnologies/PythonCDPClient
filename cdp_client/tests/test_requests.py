@@ -17,41 +17,41 @@ class RequestsTester(unittest.TestCase):
     def test_adding_one_request(self):
         self._requests.add(1, 2)
         self.assertEqual(len(self._requests.get()), 1)
-        self.assertEqual(self._requests.get()[0]['node_path'], 1)
-        self.assertEqual(self._requests.get()[0]['promise'], [2])
+        self.assertEqual(self._requests.get()[0].node_path, 1)
+        self.assertEqual(self._requests.get()[0].promises, [2])
 
     def test_adding_same_requests(self):
         self._requests.add(1, 2)
         self._requests.add(1, 2)
         self.assertEqual(len(self._requests.get()), 1)
-        self.assertEqual(self._requests.get()[0]['node_path'], 1)
-        self.assertEqual(self._requests.get()[0]['promise'], [2])
+        self.assertEqual(self._requests.get()[0].node_path, 1)
+        self.assertEqual(self._requests.get()[0].promises, [2])
 
     def test_adding_requests_with_same_node_id(self):
         self._requests.add(1, 2)
         self._requests.add(1, 4)
         self.assertEqual(len(self._requests.get()), 1)
-        self.assertEqual(len(self._requests.get()[0]['promise']), 2)
-        self.assertEqual(self._requests.get()[0]['node_path'], 1)
-        self.assertEqual(self._requests.get()[0]['promise'], [2, 4])
+        self.assertEqual(len(self._requests.get()[0].promises), 2)
+        self.assertEqual(self._requests.get()[0].node_path, 1)
+        self.assertEqual(self._requests.get()[0].promises, [2, 4])
 
     def test_adding_different_requests(self):
         self._requests.add(1, 2)
         self._requests.add(2, 4)
         self.assertEqual(len(self._requests.get()), 2)
-        self.assertEqual(len(self._requests.get()[0]['promise']), 1)
-        self.assertEqual(self._requests.get()[0]['node_path'], 1)
-        self.assertEqual(self._requests.get()[0]['promise'], [2])
-        self.assertEqual(self._requests.get()[1]['node_path'], 2)
-        self.assertEqual(self._requests.get()[1]['promise'], [4])
+        self.assertEqual(len(self._requests.get()[0].promises), 1)
+        self.assertEqual(self._requests.get()[0].node_path, 1)
+        self.assertEqual(self._requests.get()[0].promises, [2])
+        self.assertEqual(self._requests.get()[1].node_path, 2)
+        self.assertEqual(self._requests.get()[1].promises, [4])
 
     def test_finding_of_node(self):
         self._requests.add(1, 2)
         self._requests.add(2, 4)
         self._requests.add(3, 4)
         request = self._requests.find(2)
-        self.assertEqual(request['node_path'], 2)
-        self.assertEqual(request['promise'], [4])
+        self.assertEqual(request.node_path, 2)
+        self.assertEqual(request.promises, [4])
 
     def test_removal_of_node(self):
         self._requests.add(1, 2)

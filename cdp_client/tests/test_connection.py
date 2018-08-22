@@ -1,6 +1,6 @@
 from cdp_client import cdp
 from cdp_client.tests import fake_data
-import cdp_client.cdp_pb2 as proto
+from collections import namedtuple
 import unittest
 import mock
 
@@ -29,58 +29,33 @@ class ConnectionTester(unittest.TestCase):
         self._connection._is_connected = True
         node_id = 1
         self._connection.send_structure_request(node_id, 'foo')
-
-        data = proto.Container()
-        data.message_type = proto.Container.eStructureRequest
-        data.structure_request.append(node_id)
         self.assertTrue(mock_add.called)
-        mock_send.assert_called_once_with(data.SerializeToString())
+        mock_send.assert_any_call(fake_data.create_structure_request(node_id).SerializeToString())
 
     @mock.patch.object(cdp.Requests, 'add')
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_sending_root_node_structure_request(self, mock_send, mock_add):
         self._connection._is_connected = True
         self._connection.send_structure_request(None, 'foo')
-        data = proto.Container()
-        data.message_type = proto.Container.eStructureRequest
         self.assertTrue(mock_add.called)
-        mock_send.assert_called_once_with(data.SerializeToString())
+        mock_send.assert_any_call(fake_data.create_structure_request().SerializeToString())
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_sending_value_request(self, mock_send):
         node_id = 1
         self._connection.send_value_request(node_id)
-
-        data = proto.Container()
-        data.message_type = proto.Container.eGetterRequest
-        value = proto.ValueRequest()
-        value.node_id = node_id
-        value.fs = 5
-        data.getter_request.extend([value])
-        mock_send.assert_called_once_with(data.SerializeToString())
+        mock_send.assert_any_call(fake_data.create_value_request(node_id).SerializeToString())
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_sending_value_unrequest(self, mock_send):
         node_id = 1
         self._connection.send_value_unrequest(node_id)
-
-        data = proto.Container()
-        data.message_type = proto.Container.eGetterRequest
-        value = proto.ValueRequest()
-        value.node_id = node_id
-        value.fs = 5
-        value.stop = True
-        data.getter_request.extend([value])
-        mock_send.assert_called_once_with(data.SerializeToString())
+        mock_send.assert_any_call(fake_data.create_value_unrequest(node_id).SerializeToString())
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_sending_value(self, mock_send):
         self._connection.send_value(fake_data.value1)
-
-        data = proto.Container()
-        data.message_type = proto.Container.eSetterRequest
-        data.setter_request.extend([fake_data.value1])
-        mock_send.assert_called_once_with(data.SerializeToString())
+        mock_send.assert_any_call(fake_data.create_setter_request(fake_data.value1).SerializeToString())
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'run_forever')
     def test_run_event_loop(self, mock_run_forever):
@@ -92,22 +67,15 @@ class ConnectionTester(unittest.TestCase):
         self._connection.close()
         mock_close.assert_called_once_with()
 
-    def test_connected_state_is_set_when_receiving_hello_message_with_correct_version(self):
-        data = proto.Hello()
-        data.system_name = "foo"
-        data.compat_version = 1
-        data.incremental_version = 0
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    def test_connected_state_is_set_when_receiving_hello_message_with_correct_version(self, mock_send):
         self.assertEquals(self._connection._is_connected, False)
-        self._connection._handle_hello_message(None, data.SerializeToString())
+        self._connection._handle_hello_message(None, fake_data.create_valid_hello_response().SerializeToString())
         self.assertEquals(self._connection._is_connected, True)
 
     def test_connected_state_is_unset_when_receiving_hello_message_with_incorrect_version(self):
-        data = proto.Hello()
-        data.system_name = "foo"
-        data.compat_version = 2
-        data.incremental_version = 0
         self.assertEquals(self._connection._is_connected, False)
-        self._connection._handle_hello_message(None, data.SerializeToString())
+        self._connection._handle_hello_message(None, fake_data.create_invalid_hello_response().SerializeToString())
         self.assertEquals(self._connection._is_connected, False)
 
     @mock.patch.object(cdp.NodeTree, 'find_by_id')
@@ -124,14 +92,50 @@ class ConnectionTester(unittest.TestCase):
     def test_node_structure_requested_when_node_structure_change_received(self, mock_send, mock_find_by_id):
         self._connection._is_connected = True
         mock_find_by_id.return_value = cdp.Node(None, self._connection, fake_data.app1_node)
-        response = fake_data.create_app_structure_change_response()
+        response = fake_data.create_structure_change_response(fake_data.app1_node.info.node_id)
+        request = fake_data.create_structure_change_request(response.structure_change_response[0])
         self._connection._handle_container_message(None, response.SerializeToString())
-        data = proto.Container()
-        data.message_type = proto.Container.eStructureRequest
-        data.structure_request.append(response.structure_change_response[0])
-        mock_send.assert_called_once_with(data.SerializeToString())
+        mock_send.assert_any_call(request.SerializeToString())
 
     @mock.patch.object(cdp.Requests, 'clear')
     def test_requests_cleared_when_error_received(self, mock_clear):
         self._connection._handle_container_message(None, fake_data.create_error_response().SerializeToString())
         self.assertTrue(mock_clear.called)
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    @mock.patch.object(cdp.time, 'time')
+    def _test_time_difference_udpate(self, mock_time, mock_send):
+        def side_effect(*args, **kwargs):
+            nsec_in_sec = 1000000000
+            sample = samples.pop(0)
+            mock_time.side_effect = [initial_time + sample.ping, initial_time]
+            self._connection._handle_container_message(None, fake_data.create_time_response(sample.diff * nsec_in_sec).SerializeToString())
+
+        initial_time = 10
+        mock_time.return_value = initial_time
+        mock_send.side_effect = side_effect
+        samples = []
+
+        Sample = namedtuple('Sample', 'ping, diff')
+        samples.append(Sample(20, 100))
+        samples.append(Sample(10, 200)) #this should be selected as it has the best ping
+        samples.append(Sample(30, 300))
+
+        self._connection._update_time_difference()
+        request = fake_data.create_time_request().SerializeToString()
+        mock_send.assert_has_calls([mock.call(request), mock.call(request), mock.call(request)])
+        self.assertEqual(self._connection.server_time_difference(), -185.0)
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    @mock.patch.object(cdp.time, 'time')
+    def test_time_difference_udpate_frequency(self, mock_time, mock_send):
+        def side_effect(*args, **kwargs):
+            self._connection._handle_container_message(None, fake_data.create_time_response(1).SerializeToString())
+
+        mock_time.return_value = 10
+        mock_send.side_effect = side_effect
+        self._connection._update_time_difference()
+        self.assertTrue(mock_send.called)
+        mock_send.reset_mock()
+        self._connection._update_time_difference()
+        self.assertFalse(mock_send.called)
