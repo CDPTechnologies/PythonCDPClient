@@ -1,9 +1,12 @@
 from promise import Promise
 from time import sleep
+from collections import namedtuple
 import cdp_client.cdp_pb2 as proto
 import websocket
 import logging
+import time
 
+nanoseconds_in_second = 1000000000.0
 
 def enum(**enums):
     return type('Enum', (), enums)
@@ -202,7 +205,7 @@ class Node:
     def _update_value(self, variant):
         self._value = self._value_from_variant(self._structure.info.value_type, variant)
         for callback in self._value_subscriptions:
-            callback(self._value, variant.timestamp)
+            callback(self._value, variant.timestamp + self._connection.server_time_difference() * nanoseconds_in_second)
 
     @staticmethod
     def _translate_type(node_type):
@@ -296,7 +299,9 @@ class Connection:
     def __init__(self, host, port, auto_reconnect):
         self._node_tree = NodeTree(self)
         self._structure_requests = Requests()
-        self._value_requests = Requests()
+        self._time_request = Promise()
+        self._time_diff = 0 #seconds
+        self._last_time_diff_update = 0
         self._is_connected = False
         self._auto_reconnect = auto_reconnect
         self._ws = self._connect("ws://" + host + ":" + str(port))
@@ -308,16 +313,20 @@ class Connection:
         p = Promise()
         self._structure_requests.add(node_path, p)
         if self._is_connected:
+            self._update_time_difference()
             self._compose_and_send_structure_request(node_id)
         return p
 
     def send_value_request(self, node_id):
+        self._update_time_difference()
         self._compose_and_send_value_request(node_id)
 
     def send_value_unrequest(self, node_id):
+        self._update_time_difference()
         self._compose_and_send_value_request(node_id, True)
 
     def send_value(self, variant):
+        self._update_time_difference()
         self._compose_and_send_value(variant)
 
     def run_event_loop(self):
@@ -331,6 +340,9 @@ class Connection:
         self._auto_reconnect = False
         self._cleanup_queued_requests(ConnectionError('Connection was closed'))
         self._ws.close()
+
+    def server_time_difference(self):
+        return self._time_diff
 
     def _connect(self, url):
         return websocket.WebSocketApp(url,
@@ -351,11 +363,71 @@ class Connection:
     def _on_open(self, ws):
         pass
 
+    def _fetch_time_difference(self):
+        def do_time_request():
+            self._compose_and_send_time_request()
+            return self._time_request
+
+        def get_time_diff(time_samples):
+            def get_best_sample():
+                best_sample = None
+                for sample in time_samples:
+                    if best_sample is None or sample.ping < best_sample.ping:
+                        best_sample = sample
+                return best_sample
+            return Promise(lambda resolve, reject: resolve(get_best_sample().diff))
+
+        def calculate_time_diff(time_request_sent, response):
+            time_response_received = time.time()
+            client_time = time_response_received
+            ping_time = time_response_received - time_request_sent
+            server_time = response / nanoseconds_in_second + ping_time / 2.0
+            time_diff = client_time - server_time  # time_diff in seconds
+            Sample = namedtuple('Sample', 'ping, diff')
+            return Promise(lambda resolve, reject: resolve(Sample(ping_time, time_diff)))
+
+        def get_time_sample():
+            time_request_sent = time.time()
+            return do_time_request().then(lambda response: calculate_time_diff(time_request_sent, response))
+
+        def get_time_samples():
+            number_of_samples = 3
+            time_samples = []
+            promise = Promise()
+
+            def get_more_samples_if_needed():
+                def store_sample_and_get_more_if_needed(sample):
+                    time_samples.append(sample)
+                    return get_more_samples_if_needed()
+
+                if len(time_samples) < number_of_samples:
+                    return get_time_sample().then(store_sample_and_get_more_if_needed)
+                else:
+                    promise.do_resolve(time_samples)
+
+            get_more_samples_if_needed()
+            return promise
+
+        return get_time_samples().then(get_time_diff)
+
+    def _update_time_difference(self):
+        maximum_time_diff_update_frequency = 10 #seconds
+
+        def store_time_diff(time_diff):
+            self._time_diff = time_diff
+            self._last_time_diff_update = time.time()
+            return Promise(lambda resolve, reject: resolve())
+
+        if time.time() >= self._last_time_diff_update + maximum_time_diff_update_frequency:
+            return self._fetch_time_difference().then(store_time_diff)
+        else:
+            return Promise(lambda resolve, reject: resolve())
+
     def _handle_hello_message(self, ws, message):
         if self._parse_hello_message(message):
             self._is_connected = True
             self._ws.on_message = self._handle_container_message
-            self._node_tree.update().done(self._send_queued_requests())
+            self._update_time_difference().then(self._node_tree.update()).then(self._send_queued_requests())
         else:
             self._cleanup_queued_requests(CommunicationError('Protocol mismatch'))
 
@@ -369,7 +441,7 @@ class Connection:
         elif data.message_type == proto.Container.eStructureChangeResponse:
             self._parse_structure_change_response(data.structure_change_response)
         elif data.message_type == proto.Container.eCurrentTimeResponse:
-            self._parse_current_time_response(data.structure_response)
+            self._parse_current_time_response(data.current_time_response)
         elif data.message_type == proto.Container.eRemoteError:
             self._parse_error_response(data.error)
         else:
@@ -387,7 +459,7 @@ class Connection:
                 node._update()
 
     def _parse_current_time_response(self, response):
-        pass
+        self._time_request.do_resolve(response)
 
     def _parse_error_response(self, error):
         if error.code == proto.eINVALID_REQUEST:
@@ -410,16 +482,17 @@ class Connection:
             request = self._structure_requests.find(node_path)  # requests are stored with node path because node id can change between application reconnect
             if request is not None:
                 self._structure_requests.remove(node_path)
-                for p in request['promise']:
+                for p in request.promises:
                     p.do_resolve(structure)
 
     def _send_queued_requests(self):
         for request in self._structure_requests.get():
-            node_path = request['node_path']
+            node_path = request.node_path
             node_id = None if node_path is None else self._node_tree.find_by_path(node_path)._id()
             self._compose_and_send_structure_request(node_id)
 
     def _cleanup_queued_requests(self, error):
+        self._time_request.reject(error)
         self._structure_requests.clear(error)
 
     def _compose_and_send_structure_request(self, node_id):
@@ -444,6 +517,11 @@ class Connection:
         data = proto.Container()
         data.message_type = proto.Container.eSetterRequest
         data.setter_request.extend([variant])
+        self._ws.send(data.SerializeToString())
+
+    def _compose_and_send_time_request(self):
+        data = proto.Container()
+        data.message_type = proto.Container.eCurrentTimeRequest
         self._ws.send(data.SerializeToString())
 
 
@@ -536,15 +614,15 @@ class Requests:
     def add(self, node_path, promise):  # use node_path instead of node_id as this doesn't change after reconnect
         request = self.find(node_path)
         if request is None:
-            request = {'node_path': node_path, 'promise': [promise]}
-            self._requests.append(request)
+            Request = namedtuple('Request', 'node_path, promises')
+            self._requests.append(Request(node_path, [promise]))
         else:
-            if promise not in request['promise']:
-                request['promise'].append(promise)
+            if promise not in request.promises:
+                request.promises.append(promise)
 
     def find(self, node_path):
         for r in self._requests:
-            if r['node_path'] == node_path:
+            if r.node_path == node_path:
                 return r
         return None
 
@@ -554,6 +632,6 @@ class Requests:
 
     def clear(self, error=UnknownError('Something has went wrong')):
         for request in self._requests:
-            for p in request['promise']:
+            for p in request.promises:
                 p.do_reject(error)
         del self._requests[:]
