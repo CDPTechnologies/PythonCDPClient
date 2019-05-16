@@ -7,16 +7,16 @@ from setuptools import setup, find_packages
 def readme():
     with open('README.rst') as f:
         return f.read()
-		
+
 setup(
     name='cdp-client',
-    version='1.1.0',
+    version='1.1.1',
     packages=find_packages(),
     install_requires=[
-        'promise>=2.1',
-        'websocket-client>=0.47.0',
-        'protobuf>=3.5.2',
-        'mock>=2.0.0'],
+        'promise==2.2.1',
+        'websocket-client==0.56.0',
+        'protobuf==3.7.1',
+        'mock==3.0.5'],
     keywords=["cdp cdpstudio studio client cdp-client cdp_client"],
     url='https://github.com/CDPTechnologies/PythonCDPClient',
     license='MIT',
