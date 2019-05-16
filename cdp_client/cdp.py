@@ -351,16 +351,16 @@ class Connection:
                                       on_close=self._on_close,
                                       on_open=self._on_open)
 
-    def _on_error(self, ws, error):
+    def _on_error(self, error):
         if not self._auto_reconnect:
             self._cleanup_queued_requests(ConnectionError(error))
 
-    def _on_close(self, ws):
+    def _on_close(self):
         self._is_connected = False
         if not self._auto_reconnect:
             self._cleanup_queued_requests(ConnectionError("Connection was closed"))
 
-    def _on_open(self, ws):
+    def _on_open(self):
         pass
 
     def _fetch_time_difference(self):
@@ -423,7 +423,7 @@ class Connection:
         else:
             return Promise(lambda resolve, reject: resolve())
 
-    def _handle_hello_message(self, ws, message):
+    def _handle_hello_message(self, message):
         if self._parse_hello_message(message):
             self._is_connected = True
             self._ws.on_message = self._handle_container_message
@@ -431,7 +431,7 @@ class Connection:
         else:
             self._cleanup_queued_requests(CommunicationError('Protocol mismatch'))
 
-    def _handle_container_message(self, ws, message):
+    def _handle_container_message(self, message):
         data = proto.Container()
         data.ParseFromString(message)
         if data.message_type == proto.Container.eStructureResponse:
