@@ -8,7 +8,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -20,7 +19,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='cdp.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\tcdp.proto\"~\n\x05Hello\x12\x13\n\x0bsystem_name\x18\x01 \x02(\t\x12\x19\n\x0e\x63ompat_version\x18\x02 \x02(\r:\x01\x31\x12\x1e\n\x13incremental_version\x18\x03 \x02(\r:\x01\x30\x12\x12\n\npublic_key\x18\x04 \x03(\x0c\x12\x11\n\tchallenge\x18\x05 \x01(\x0c\"<\n\x11\x43hallengeSolution\x12\x12\n\npublic_key\x18\x01 \x02(\x0c\x12\x13\n\x0bsigned_data\x18\x02 \x02(\x0c\"$\n\x11\x43hallengeResponse\x12\x0f\n\x07success\x18\x01 \x02(\x08\"\xa1\x04\n\tContainer\x12%\n\x0cmessage_type\x18\x01 \x01(\x0e\x32\x0f.Container.Type\x12\x15\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.Error\x12\x19\n\x11structure_request\x18\x03 \x03(\r\x12!\n\x12structure_response\x18\x04 \x03(\x0b\x32\x05.Node\x12%\n\x0egetter_request\x18\x05 \x03(\x0b\x32\r.ValueRequest\x12&\n\x0fgetter_response\x18\x06 \x03(\x0b\x32\r.VariantValue\x12%\n\x0esetter_request\x18\x07 \x03(\x0b\x32\r.VariantValue\x12!\n\x19structure_change_response\x18\x08 \x03(\r\x12\x1d\n\x15\x63urrent_time_response\x18\t \x01(\x04\"\xd5\x01\n\x04Type\x12\x10\n\x0c\x65RemoteError\x10\x00\x12\x15\n\x11\x65StructureRequest\x10\x01\x12\x16\n\x12\x65StructureResponse\x10\x02\x12\x12\n\x0e\x65GetterRequest\x10\x03\x12\x13\n\x0f\x65GetterResponse\x10\x04\x12\x12\n\x0e\x65SetterRequest\x10\x05\x12\x1c\n\x18\x65StructureChangeResponse\x10\x06\x12\x17\n\x13\x65\x43urrentTimeRequest\x10\x07\x12\x18\n\x14\x65\x43urrentTimeResponse\x10\x08*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"-\n\x05\x45rror\x12\x0c\n\x04\x63ode\x18\x01 \x02(\r\x12\x0c\n\x04text\x18\x02 \x01(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\xea\x02\n\x04Info\x12\x0f\n\x07node_id\x18\x01 \x02(\r\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x1f\n\tnode_type\x18\x03 \x02(\x0e\x32\x0c.CDPNodeType\x12!\n\nvalue_type\x18\x04 \x01(\x0e\x32\r.CDPValueType\x12\x11\n\ttype_name\x18\x05 \x01(\t\x12\x13\n\x0bserver_addr\x18\x06 \x01(\t\x12\x13\n\x0bserver_port\x18\x07 \x01(\r\x12\x10\n\x08is_local\x18\x08 \x01(\x08\x12\r\n\x05\x66lags\x18\t \x01(\r\"\x96\x01\n\x05\x46lags\x12\t\n\x05\x65None\x10\x00\x12\x0f\n\x0b\x65NodeIsLeaf\x10\x01\x12\x16\n\x12\x65ValueIsPersistent\x10\x02\x12\x14\n\x10\x65ValueIsReadOnly\x10\x04\x12\x14\n\x10\x65NodeIsRemovable\x10\x08\x12\x17\n\x13\x65NodeCanAddChildren\x10\x10\x12\x14\n\x10\x65NodeIsRenamable\x10 *\x08\x08\x64\x10\x80\x80\x80\x80\x02\":\n\x04Node\x12\x13\n\x04info\x18\x01 \x02(\x0b\x32\x05.Info\x12\x13\n\x04node\x18\x02 \x03(\x0b\x32\x05.Node*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\x92\x02\n\x0cVariantValue\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x0f\n\x07\x64_value\x18\x02 \x01(\x01\x12\x0f\n\x07\x66_value\x18\x03 \x01(\x02\x12\x12\n\nui64_value\x18\x04 \x01(\x04\x12\x11\n\ti64_value\x18\x05 \x01(\x12\x12\x10\n\x08ui_value\x18\x06 \x01(\r\x12\x0f\n\x07i_value\x18\x07 \x01(\x11\x12\x10\n\x08us_value\x18\x08 \x01(\r\x12\x0f\n\x07s_value\x18\t \x01(\x11\x12\x10\n\x08uc_value\x18\n \x01(\r\x12\x0f\n\x07\x63_value\x18\x0b \x01(\x11\x12\x0f\n\x07\x62_value\x18\x0c \x01(\x08\x12\x11\n\tstr_value\x18\r \x01(\t\x12\x11\n\ttimestamp\x18\x0e \x01(\x04*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"C\n\x0cValueRequest\x12\x0f\n\x07node_id\x18\x01 \x02(\r\x12\n\n\x02\x66s\x18\x02 \x01(\x01\x12\x0c\n\x04stop\x18\x03 \x01(\x08*\x08\x08\x64\x10\x80\x80\x80\x80\x02*H\n\x0fRemoteErrorCode\x12\x14\n\x10\x65INVALID_REQUEST\x10\n\x12\x1f\n\x1b\x65UNSUPPORTED_CONTAINER_TYPE\x10\x14*\xfb\x01\n\x0b\x43\x44PNodeType\x12\x1a\n\rCDP_UNDEFINED\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x0e\n\nCDP_SYSTEM\x10\x00\x12\x13\n\x0f\x43\x44P_APPLICATION\x10\x01\x12\x11\n\rCDP_COMPONENT\x10\x02\x12\x0e\n\nCDP_OBJECT\x10\x03\x12\x0f\n\x0b\x43\x44P_MESSAGE\x10\x04\x12\x13\n\x0f\x43\x44P_BASE_OBJECT\x10\x05\x12\x10\n\x0c\x43\x44P_PROPERTY\x10\x06\x12\x0f\n\x0b\x43\x44P_SETTING\x10\x07\x12\x0c\n\x08\x43\x44P_ENUM\x10\x08\x12\x10\n\x0c\x43\x44P_OPERATOR\x10\t\x12\x0c\n\x08\x43\x44P_NODE\x10\n\x12\x11\n\rCDP_USER_TYPE\x10\x64*\xbc\x01\n\x0c\x43\x44PValueType\x12\x0e\n\neUNDEFINED\x10\x00\x12\x0b\n\x07\x65\x44OUBLE\x10\x01\x12\x0b\n\x07\x65UINT64\x10\x02\x12\n\n\x06\x65INT64\x10\x03\x12\n\n\x06\x65\x46LOAT\x10\x04\x12\t\n\x05\x65UINT\x10\x05\x12\x08\n\x04\x65INT\x10\x06\x12\x0b\n\x07\x65USHORT\x10\x07\x12\n\n\x06\x65SHORT\x10\x08\x12\n\n\x06\x65UCHAR\x10\t\x12\t\n\x05\x65\x43HAR\x10\n\x12\t\n\x05\x65\x42OOL\x10\x0b\x12\x0b\n\x07\x65STRING\x10\x0c\x12\r\n\teUSERTYPE\x10\x64')
+  serialized_options=None,
+  serialized_pb=_b('\n\tcdp.proto\"\xe9\x01\n\x05Hello\x12\x13\n\x0bsystem_name\x18\x01 \x02(\t\x12\x19\n\x0e\x63ompat_version\x18\x02 \x02(\r:\x01\x31\x12\x1e\n\x13incremental_version\x18\x03 \x02(\r:\x01\x30\x12\x12\n\npublic_key\x18\x04 \x03(\x0c\x12\x11\n\tchallenge\x18\x05 \x01(\x0c\x12\x18\n\x10\x61pplication_name\x18\x06 \x01(\t\x12\x19\n\x11\x63\x64p_version_major\x18\x07 \x01(\r\x12\x19\n\x11\x63\x64p_version_minor\x18\x08 \x01(\r\x12\x19\n\x11\x63\x64p_version_patch\x18\t \x01(\r\"\x8f\x01\n\x0b\x41uthRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12:\n\x12\x63hallenge_response\x18\x02 \x03(\x0b\x32\x1e.AuthRequest.ChallengeResponse\x1a\x33\n\x11\x43hallengeResponse\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08response\x18\x02 \x01(\x0c\"\xb0\x01\n#AdditionalChallengeResponseRequired\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0e\n\x06prompt\x18\x02 \x01(\t\x12\x41\n\tparameter\x18\x03 \x03(\x0b\x32..AdditionalChallengeResponseRequired.Parameter\x1a(\n\tParameter\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xd9\x02\n\x0c\x41uthResponse\x12\x31\n\x0bresult_code\x18\x01 \x01(\x0e\x32\x1c.AuthResponse.AuthResultCode\x12\x13\n\x0bresult_text\x18\x02 \x01(\t\x12T\n&additional_challenge_response_required\x18\x03 \x03(\x0b\x32$.AdditionalChallengeResponseRequired\"\xaa\x01\n\x0e\x41uthResultCode\x12\x0c\n\x08\x65Unknown\x10\x00\x12\x0c\n\x08\x65Granted\x10\x01\x12\"\n\x1e\x65GrantedPasswordWillExpireSoon\x10\x02\x12\x18\n\x14\x65NewPasswordRequired\x10\n\x12\x1d\n\x19\x65InvalidChallengeResponse\x10\x0b\x12\x1f\n\x1b\x65\x41\x64\x64itionalResponseRequired\x10\x0c\"\xa2\x05\n\tContainer\x12%\n\x0cmessage_type\x18\x01 \x01(\x0e\x32\x0f.Container.Type\x12\x15\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.Error\x12\x19\n\x11structure_request\x18\x03 \x03(\r\x12!\n\x12structure_response\x18\x04 \x03(\x0b\x32\x05.Node\x12%\n\x0egetter_request\x18\x05 \x03(\x0b\x32\r.ValueRequest\x12&\n\x0fgetter_response\x18\x06 \x03(\x0b\x32\r.VariantValue\x12%\n\x0esetter_request\x18\x07 \x03(\x0b\x32\r.VariantValue\x12!\n\x19structure_change_response\x18\x08 \x03(\r\x12\x1d\n\x15\x63urrent_time_response\x18\t \x01(\x04\x12$\n\x11\x63hild_add_request\x18\n \x03(\x0b\x32\t.ChildAdd\x12*\n\x14\x63hild_remove_request\x18\x0b \x03(\x0b\x32\x0c.ChildRemove\"\x84\x02\n\x04Type\x12\x10\n\x0c\x65RemoteError\x10\x00\x12\x15\n\x11\x65StructureRequest\x10\x01\x12\x16\n\x12\x65StructureResponse\x10\x02\x12\x12\n\x0e\x65GetterRequest\x10\x03\x12\x13\n\x0f\x65GetterResponse\x10\x04\x12\x12\n\x0e\x65SetterRequest\x10\x05\x12\x1c\n\x18\x65StructureChangeResponse\x10\x06\x12\x17\n\x13\x65\x43urrentTimeRequest\x10\x07\x12\x18\n\x14\x65\x43urrentTimeResponse\x10\x08\x12\x14\n\x10\x65\x43hildAddRequest\x10\t\x12\x17\n\x13\x65\x43hildRemoveRequest\x10\n*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"Q\n\x05\x45rror\x12\x0c\n\x04\x63ode\x18\x01 \x02(\r\x12\x0c\n\x04text\x18\x02 \x01(\t\x12\x0f\n\x07node_id\x18\x03 \x01(\r\x12\x11\n\tparameter\x18\x04 \x01(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\x96\x03\n\x04Info\x12\x0f\n\x07node_id\x18\x01 \x02(\r\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x1f\n\tnode_type\x18\x03 \x02(\x0e\x32\x0c.CDPNodeType\x12!\n\nvalue_type\x18\x04 \x01(\x0e\x32\r.CDPValueType\x12\x11\n\ttype_name\x18\x05 \x01(\t\x12\x13\n\x0bserver_addr\x18\x06 \x01(\t\x12\x13\n\x0bserver_port\x18\x07 \x01(\r\x12\x10\n\x08is_local\x18\x08 \x01(\x08\x12\r\n\x05\x66lags\x18\t \x01(\r\"\xc2\x01\n\x05\x46lags\x12\t\n\x05\x65None\x10\x00\x12\x0f\n\x0b\x65NodeIsLeaf\x10\x01\x12\x16\n\x12\x65ValueIsPersistent\x10\x02\x12\x14\n\x10\x65ValueIsReadOnly\x10\x04\x12\x14\n\x10\x65NodeIsRemovable\x10\x08\x12\x17\n\x13\x65NodeCanAddChildren\x10\x10\x12\x14\n\x10\x65NodeIsRenamable\x10 \x12\x13\n\x0f\x65NodeIsInternal\x10@\x12\x15\n\x10\x65NodeIsImportant\x10\x80\x01*\x08\x08\x64\x10\x80\x80\x80\x80\x02\":\n\x04Node\x12\x13\n\x04info\x18\x01 \x02(\x0b\x32\x05.Info\x12\x13\n\x04node\x18\x02 \x03(\x0b\x32\x05.Node*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"Y\n\x08\x43hildAdd\x12\x16\n\x0eparent_node_id\x18\x01 \x02(\r\x12\x12\n\nchild_name\x18\x02 \x02(\t\x12\x17\n\x0f\x63hild_type_name\x18\x03 \x02(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"C\n\x0b\x43hildRemove\x12\x16\n\x0eparent_node_id\x18\x01 \x02(\r\x12\x12\n\nchild_name\x18\x02 \x02(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\x92\x02\n\x0cVariantValue\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x0f\n\x07\x64_value\x18\x02 \x01(\x01\x12\x0f\n\x07\x66_value\x18\x03 \x01(\x02\x12\x12\n\nui64_value\x18\x04 \x01(\x04\x12\x11\n\ti64_value\x18\x05 \x01(\x12\x12\x10\n\x08ui_value\x18\x06 \x01(\r\x12\x0f\n\x07i_value\x18\x07 \x01(\x11\x12\x10\n\x08us_value\x18\x08 \x01(\r\x12\x0f\n\x07s_value\x18\t \x01(\x11\x12\x10\n\x08uc_value\x18\n \x01(\r\x12\x0f\n\x07\x63_value\x18\x0b \x01(\x11\x12\x0f\n\x07\x62_value\x18\x0c \x01(\x08\x12\x11\n\tstr_value\x18\r \x01(\t\x12\x11\n\ttimestamp\x18\x0e \x01(\x04*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"C\n\x0cValueRequest\x12\x0f\n\x07node_id\x18\x01 \x02(\r\x12\n\n\x02\x66s\x18\x02 \x01(\x01\x12\x0c\n\x04stop\x18\x03 \x01(\x08*\x08\x08\x64\x10\x80\x80\x80\x80\x02*\xb9\x01\n\x0fRemoteErrorCode\x12\x14\n\x10\x65INVALID_REQUEST\x10\n\x12\x1f\n\x1b\x65UNSUPPORTED_CONTAINER_TYPE\x10\x14\x12\x1f\n\x1b\x65VALUE_THROTTLING_OCCURRING\x10\x1e\x12\x1d\n\x19\x65VALUE_THROTTLING_STOPPED\x10\x1f\x12\x15\n\x11\x65\x43HILD_ADD_FAILED\x10(\x12\x18\n\x14\x65\x43HILD_REMOVE_FAILED\x10\x32*\xfb\x01\n\x0b\x43\x44PNodeType\x12\x1a\n\rCDP_UNDEFINED\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x0e\n\nCDP_SYSTEM\x10\x00\x12\x13\n\x0f\x43\x44P_APPLICATION\x10\x01\x12\x11\n\rCDP_COMPONENT\x10\x02\x12\x0e\n\nCDP_OBJECT\x10\x03\x12\x0f\n\x0b\x43\x44P_MESSAGE\x10\x04\x12\x13\n\x0f\x43\x44P_BASE_OBJECT\x10\x05\x12\x10\n\x0c\x43\x44P_PROPERTY\x10\x06\x12\x0f\n\x0b\x43\x44P_SETTING\x10\x07\x12\x0c\n\x08\x43\x44P_ENUM\x10\x08\x12\x10\n\x0c\x43\x44P_OPERATOR\x10\t\x12\x0c\n\x08\x43\x44P_NODE\x10\n\x12\x11\n\rCDP_USER_TYPE\x10\x64*\xbc\x01\n\x0c\x43\x44PValueType\x12\x0e\n\neUNDEFINED\x10\x00\x12\x0b\n\x07\x65\x44OUBLE\x10\x01\x12\x0b\n\x07\x65UINT64\x10\x02\x12\n\n\x06\x65INT64\x10\x03\x12\n\n\x06\x65\x46LOAT\x10\x04\x12\t\n\x05\x65UINT\x10\x05\x12\x08\n\x04\x65INT\x10\x06\x12\x0b\n\x07\x65USHORT\x10\x07\x12\n\n\x06\x65SHORT\x10\x08\x12\n\n\x06\x65UCHAR\x10\t\x12\t\n\x05\x65\x43HAR\x10\n\x12\t\n\x05\x65\x42OOL\x10\x0b\x12\x0b\n\x07\x65STRING\x10\x0c\x12\r\n\teUSERTYPE\x10\x64')
 )
 
 _REMOTEERRORCODE = _descriptor.EnumDescriptor(
@@ -31,17 +31,33 @@ _REMOTEERRORCODE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='eINVALID_REQUEST', index=0, number=10,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eUNSUPPORTED_CONTAINER_TYPE', index=1, number=20,
-      options=None,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eVALUE_THROTTLING_OCCURRING', index=2, number=30,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eVALUE_THROTTLING_STOPPED', index=3, number=31,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eCHILD_ADD_FAILED', index=4, number=40,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eCHILD_REMOVE_FAILED', index=5, number=50,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=1607,
-  serialized_end=1679,
+  serialized_options=None,
+  serialized_start=2658,
+  serialized_end=2843,
 )
 _sym_db.RegisterEnumDescriptor(_REMOTEERRORCODE)
 
@@ -54,61 +70,61 @@ _CDPNODETYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='CDP_UNDEFINED', index=0, number=-1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_SYSTEM', index=1, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_APPLICATION', index=2, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_COMPONENT', index=3, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_OBJECT', index=4, number=3,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_MESSAGE', index=5, number=4,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_BASE_OBJECT', index=6, number=5,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_PROPERTY', index=7, number=6,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_SETTING', index=8, number=7,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_ENUM', index=9, number=8,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_OPERATOR', index=10, number=9,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_NODE', index=11, number=10,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CDP_USER_TYPE', index=12, number=100,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=1682,
-  serialized_end=1933,
+  serialized_options=None,
+  serialized_start=2846,
+  serialized_end=3097,
 )
 _sym_db.RegisterEnumDescriptor(_CDPNODETYPE)
 
@@ -121,71 +137,75 @@ _CDPVALUETYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='eUNDEFINED', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eDOUBLE', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eUINT64', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eINT64', index=3, number=3,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eFLOAT', index=4, number=4,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eUINT', index=5, number=5,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eINT', index=6, number=6,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eUSHORT', index=7, number=7,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eSHORT', index=8, number=8,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eUCHAR', index=9, number=9,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eCHAR', index=10, number=10,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eBOOL', index=11, number=11,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eSTRING', index=12, number=12,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eUSERTYPE', index=13, number=100,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=1936,
-  serialized_end=2124,
+  serialized_options=None,
+  serialized_start=3100,
+  serialized_end=3288,
 )
 _sym_db.RegisterEnumDescriptor(_CDPVALUETYPE)
 
 CDPValueType = enum_type_wrapper.EnumTypeWrapper(_CDPVALUETYPE)
 eINVALID_REQUEST = 10
 eUNSUPPORTED_CONTAINER_TYPE = 20
+eVALUE_THROTTLING_OCCURRING = 30
+eVALUE_THROTTLING_STOPPED = 31
+eCHILD_ADD_FAILED = 40
+eCHILD_REMOVE_FAILED = 50
 CDP_UNDEFINED = -1
 CDP_SYSTEM = 0
 CDP_APPLICATION = 1
@@ -215,6 +235,44 @@ eSTRING = 12
 eUSERTYPE = 100
 
 
+_AUTHRESPONSE_AUTHRESULTCODE = _descriptor.EnumDescriptor(
+  name='AuthResultCode',
+  full_name='AuthResponse.AuthResultCode',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='eUnknown', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eGranted', index=1, number=1,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eGrantedPasswordWillExpireSoon', index=2, number=2,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eNewPasswordRequired', index=3, number=10,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eInvalidChallengeResponse', index=4, number=11,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eAdditionalResponseRequired', index=5, number=12,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=750,
+  serialized_end=920,
+)
+_sym_db.RegisterEnumDescriptor(_AUTHRESPONSE_AUTHRESULTCODE)
+
 _CONTAINER_TYPE = _descriptor.EnumDescriptor(
   name='Type',
   full_name='Container.Type',
@@ -223,45 +281,53 @@ _CONTAINER_TYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='eRemoteError', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eStructureRequest', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eStructureResponse', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eGetterRequest', index=3, number=3,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eGetterResponse', index=4, number=4,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eSetterRequest', index=5, number=5,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eStructureChangeResponse', index=6, number=6,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eCurrentTimeRequest', index=7, number=7,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eCurrentTimeResponse', index=8, number=8,
-      options=None,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eChildAddRequest', index=9, number=9,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eChildRemoveRequest', index=10, number=10,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=564,
-  serialized_end=777,
+  serialized_options=None,
+  serialized_start=1327,
+  serialized_end=1587,
 )
 _sym_db.RegisterEnumDescriptor(_CONTAINER_TYPE)
 
@@ -273,37 +339,45 @@ _INFO_FLAGS = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='eNone', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eNodeIsLeaf', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eValueIsPersistent', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eValueIsReadOnly', index=3, number=4,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eNodeIsRemovable', index=4, number=8,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eNodeCanAddChildren', index=5, number=16,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='eNodeIsRenamable', index=6, number=32,
-      options=None,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eNodeIsInternal', index=7, number=64,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eNodeIsImportant', index=8, number=128,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=1039,
-  serialized_end=1189,
+  serialized_options=None,
+  serialized_start=1885,
+  serialized_end=2079,
 )
 _sym_db.RegisterEnumDescriptor(_INFO_FLAGS)
 
@@ -321,118 +395,280 @@ _HELLO = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='compat_version', full_name='Hello.compat_version', index=1,
       number=2, type=13, cpp_type=3, label=2,
       has_default_value=True, default_value=1,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='incremental_version', full_name='Hello.incremental_version', index=2,
       number=3, type=13, cpp_type=3, label=2,
       has_default_value=True, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='public_key', full_name='Hello.public_key', index=3,
       number=4, type=12, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='challenge', full_name='Hello.challenge', index=4,
       number=5, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='application_name', full_name='Hello.application_name', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='cdp_version_major', full_name='Hello.cdp_version_major', index=6,
+      number=7, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='cdp_version_minor', full_name='Hello.cdp_version_minor', index=7,
+      number=8, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='cdp_version_patch', full_name='Hello.cdp_version_patch', index=8,
+      number=9, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13,
-  serialized_end=139,
+  serialized_start=14,
+  serialized_end=247,
 )
 
 
-_CHALLENGESOLUTION = _descriptor.Descriptor(
-  name='ChallengeSolution',
-  full_name='ChallengeSolution',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='public_key', full_name='ChallengeSolution.public_key', index=0,
-      number=1, type=12, cpp_type=9, label=2,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='signed_data', full_name='ChallengeSolution.signed_data', index=1,
-      number=2, type=12, cpp_type=9, label=2,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=141,
-  serialized_end=201,
-)
-
-
-_CHALLENGERESPONSE = _descriptor.Descriptor(
+_AUTHREQUEST_CHALLENGERESPONSE = _descriptor.Descriptor(
   name='ChallengeResponse',
-  full_name='ChallengeResponse',
+  full_name='AuthRequest.ChallengeResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='success', full_name='ChallengeResponse.success', index=0,
-      number=1, type=8, cpp_type=7, label=2,
-      has_default_value=False, default_value=False,
+      name='type', full_name='AuthRequest.ChallengeResponse.type', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='response', full_name='AuthRequest.ChallengeResponse.response', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=203,
-  serialized_end=239,
+  serialized_start=342,
+  serialized_end=393,
+)
+
+_AUTHREQUEST = _descriptor.Descriptor(
+  name='AuthRequest',
+  full_name='AuthRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='user_id', full_name='AuthRequest.user_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='challenge_response', full_name='AuthRequest.challenge_response', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[_AUTHREQUEST_CHALLENGERESPONSE, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=250,
+  serialized_end=393,
+)
+
+
+_ADDITIONALCHALLENGERESPONSEREQUIRED_PARAMETER = _descriptor.Descriptor(
+  name='Parameter',
+  full_name='AdditionalChallengeResponseRequired.Parameter',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='name', full_name='AdditionalChallengeResponseRequired.Parameter.name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='AdditionalChallengeResponseRequired.Parameter.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=532,
+  serialized_end=572,
+)
+
+_ADDITIONALCHALLENGERESPONSEREQUIRED = _descriptor.Descriptor(
+  name='AdditionalChallengeResponseRequired',
+  full_name='AdditionalChallengeResponseRequired',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='AdditionalChallengeResponseRequired.type', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='prompt', full_name='AdditionalChallengeResponseRequired.prompt', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='parameter', full_name='AdditionalChallengeResponseRequired.parameter', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[_ADDITIONALCHALLENGERESPONSEREQUIRED_PARAMETER, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=396,
+  serialized_end=572,
+)
+
+
+_AUTHRESPONSE = _descriptor.Descriptor(
+  name='AuthResponse',
+  full_name='AuthResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='result_code', full_name='AuthResponse.result_code', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='result_text', full_name='AuthResponse.result_text', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='additional_challenge_response_required', full_name='AuthResponse.additional_challenge_response_required', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _AUTHRESPONSE_AUTHRESULTCODE,
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=575,
+  serialized_end=920,
 )
 
 
@@ -449,63 +685,77 @@ _CONTAINER = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='error', full_name='Container.error', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='structure_request', full_name='Container.structure_request', index=2,
       number=3, type=13, cpp_type=3, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='structure_response', full_name='Container.structure_response', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='getter_request', full_name='Container.getter_request', index=4,
       number=5, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='getter_response', full_name='Container.getter_response', index=5,
       number=6, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='setter_request', full_name='Container.setter_request', index=6,
       number=7, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='structure_change_response', full_name='Container.structure_change_response', index=7,
       number=8, type=13, cpp_type=3, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='current_time_response', full_name='Container.current_time_response', index=8,
       number=9, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='child_add_request', full_name='Container.child_add_request', index=9,
+      number=10, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='child_remove_request', full_name='Container.child_remove_request', index=10,
+      number=11, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -513,14 +763,14 @@ _CONTAINER = _descriptor.Descriptor(
   enum_types=[
     _CONTAINER_TYPE,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=True,
   syntax='proto2',
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=242,
-  serialized_end=787,
+  serialized_start=923,
+  serialized_end=1597,
 )
 
 
@@ -537,28 +787,42 @@ _ERROR = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='text', full_name='Error.text', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='node_id', full_name='Error.node_id', index=2,
+      number=3, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='parameter', full_name='Error.parameter', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=True,
   syntax='proto2',
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=789,
-  serialized_end=834,
+  serialized_start=1599,
+  serialized_end=1680,
 )
 
 
@@ -575,63 +839,63 @@ _INFO = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='name', full_name='Info.name', index=1,
       number=2, type=9, cpp_type=9, label=2,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='node_type', full_name='Info.node_type', index=2,
       number=3, type=14, cpp_type=8, label=2,
       has_default_value=False, default_value=-1,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value_type', full_name='Info.value_type', index=3,
       number=4, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='type_name', full_name='Info.type_name', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='server_addr', full_name='Info.server_addr', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='server_port', full_name='Info.server_port', index=6,
       number=7, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='is_local', full_name='Info.is_local', index=7,
       number=8, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='flags', full_name='Info.flags', index=8,
       number=9, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -639,14 +903,14 @@ _INFO = _descriptor.Descriptor(
   enum_types=[
     _INFO_FLAGS,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=True,
   syntax='proto2',
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=837,
-  serialized_end=1199,
+  serialized_start=1683,
+  serialized_end=2089,
 )
 
 
@@ -663,28 +927,111 @@ _NODE = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='node', full_name='Node.node', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=True,
   syntax='proto2',
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=1201,
-  serialized_end=1259,
+  serialized_start=2091,
+  serialized_end=2149,
+)
+
+
+_CHILDADD = _descriptor.Descriptor(
+  name='ChildAdd',
+  full_name='ChildAdd',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='parent_node_id', full_name='ChildAdd.parent_node_id', index=0,
+      number=1, type=13, cpp_type=3, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='child_name', full_name='ChildAdd.child_name', index=1,
+      number=2, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='child_type_name', full_name='ChildAdd.child_type_name', index=2,
+      number=3, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=True,
+  syntax='proto2',
+  extension_ranges=[(100, 536870912), ],
+  oneofs=[
+  ],
+  serialized_start=2151,
+  serialized_end=2240,
+)
+
+
+_CHILDREMOVE = _descriptor.Descriptor(
+  name='ChildRemove',
+  full_name='ChildRemove',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='parent_node_id', full_name='ChildRemove.parent_node_id', index=0,
+      number=1, type=13, cpp_type=3, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='child_name', full_name='ChildRemove.child_name', index=1,
+      number=2, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=True,
+  syntax='proto2',
+  extension_ranges=[(100, 536870912), ],
+  oneofs=[
+  ],
+  serialized_start=2242,
+  serialized_end=2309,
 )
 
 
@@ -701,112 +1048,112 @@ _VARIANTVALUE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='d_value', full_name='VariantValue.d_value', index=1,
       number=2, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='f_value', full_name='VariantValue.f_value', index=2,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ui64_value', full_name='VariantValue.ui64_value', index=3,
       number=4, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='i64_value', full_name='VariantValue.i64_value', index=4,
       number=5, type=18, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ui_value', full_name='VariantValue.ui_value', index=5,
       number=6, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='i_value', full_name='VariantValue.i_value', index=6,
       number=7, type=17, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='us_value', full_name='VariantValue.us_value', index=7,
       number=8, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='s_value', full_name='VariantValue.s_value', index=8,
       number=9, type=17, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='uc_value', full_name='VariantValue.uc_value', index=9,
       number=10, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='c_value', full_name='VariantValue.c_value', index=10,
       number=11, type=17, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='b_value', full_name='VariantValue.b_value', index=11,
       number=12, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='str_value', full_name='VariantValue.str_value', index=12,
       number=13, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='timestamp', full_name='VariantValue.timestamp', index=13,
       number=14, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=True,
   syntax='proto2',
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=1262,
-  serialized_end=1536,
+  serialized_start=2312,
+  serialized_end=2586,
 )
 
 
@@ -823,43 +1170,52 @@ _VALUEREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='fs', full_name='ValueRequest.fs', index=1,
       number=2, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='stop', full_name='ValueRequest.stop', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=True,
   syntax='proto2',
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=1538,
-  serialized_end=1605,
+  serialized_start=2588,
+  serialized_end=2655,
 )
 
+_AUTHREQUEST_CHALLENGERESPONSE.containing_type = _AUTHREQUEST
+_AUTHREQUEST.fields_by_name['challenge_response'].message_type = _AUTHREQUEST_CHALLENGERESPONSE
+_ADDITIONALCHALLENGERESPONSEREQUIRED_PARAMETER.containing_type = _ADDITIONALCHALLENGERESPONSEREQUIRED
+_ADDITIONALCHALLENGERESPONSEREQUIRED.fields_by_name['parameter'].message_type = _ADDITIONALCHALLENGERESPONSEREQUIRED_PARAMETER
+_AUTHRESPONSE.fields_by_name['result_code'].enum_type = _AUTHRESPONSE_AUTHRESULTCODE
+_AUTHRESPONSE.fields_by_name['additional_challenge_response_required'].message_type = _ADDITIONALCHALLENGERESPONSEREQUIRED
+_AUTHRESPONSE_AUTHRESULTCODE.containing_type = _AUTHRESPONSE
 _CONTAINER.fields_by_name['message_type'].enum_type = _CONTAINER_TYPE
 _CONTAINER.fields_by_name['error'].message_type = _ERROR
 _CONTAINER.fields_by_name['structure_response'].message_type = _NODE
 _CONTAINER.fields_by_name['getter_request'].message_type = _VALUEREQUEST
 _CONTAINER.fields_by_name['getter_response'].message_type = _VARIANTVALUE
 _CONTAINER.fields_by_name['setter_request'].message_type = _VARIANTVALUE
+_CONTAINER.fields_by_name['child_add_request'].message_type = _CHILDADD
+_CONTAINER.fields_by_name['child_remove_request'].message_type = _CHILDREMOVE
 _CONTAINER_TYPE.containing_type = _CONTAINER
 _INFO.fields_by_name['node_type'].enum_type = _CDPNODETYPE
 _INFO.fields_by_name['value_type'].enum_type = _CDPVALUETYPE
@@ -867,12 +1223,15 @@ _INFO_FLAGS.containing_type = _INFO
 _NODE.fields_by_name['info'].message_type = _INFO
 _NODE.fields_by_name['node'].message_type = _NODE
 DESCRIPTOR.message_types_by_name['Hello'] = _HELLO
-DESCRIPTOR.message_types_by_name['ChallengeSolution'] = _CHALLENGESOLUTION
-DESCRIPTOR.message_types_by_name['ChallengeResponse'] = _CHALLENGERESPONSE
+DESCRIPTOR.message_types_by_name['AuthRequest'] = _AUTHREQUEST
+DESCRIPTOR.message_types_by_name['AdditionalChallengeResponseRequired'] = _ADDITIONALCHALLENGERESPONSEREQUIRED
+DESCRIPTOR.message_types_by_name['AuthResponse'] = _AUTHRESPONSE
 DESCRIPTOR.message_types_by_name['Container'] = _CONTAINER
 DESCRIPTOR.message_types_by_name['Error'] = _ERROR
 DESCRIPTOR.message_types_by_name['Info'] = _INFO
 DESCRIPTOR.message_types_by_name['Node'] = _NODE
+DESCRIPTOR.message_types_by_name['ChildAdd'] = _CHILDADD
+DESCRIPTOR.message_types_by_name['ChildRemove'] = _CHILDREMOVE
 DESCRIPTOR.message_types_by_name['VariantValue'] = _VARIANTVALUE
 DESCRIPTOR.message_types_by_name['ValueRequest'] = _VALUEREQUEST
 DESCRIPTOR.enum_types_by_name['RemoteErrorCode'] = _REMOTEERRORCODE
@@ -887,19 +1246,42 @@ Hello = _reflection.GeneratedProtocolMessageType('Hello', (_message.Message,), d
   ))
 _sym_db.RegisterMessage(Hello)
 
-ChallengeSolution = _reflection.GeneratedProtocolMessageType('ChallengeSolution', (_message.Message,), dict(
-  DESCRIPTOR = _CHALLENGESOLUTION,
-  __module__ = 'cdp_pb2'
-  # @@protoc_insertion_point(class_scope:ChallengeSolution)
-  ))
-_sym_db.RegisterMessage(ChallengeSolution)
+AuthRequest = _reflection.GeneratedProtocolMessageType('AuthRequest', (_message.Message,), dict(
 
-ChallengeResponse = _reflection.GeneratedProtocolMessageType('ChallengeResponse', (_message.Message,), dict(
-  DESCRIPTOR = _CHALLENGERESPONSE,
+  ChallengeResponse = _reflection.GeneratedProtocolMessageType('ChallengeResponse', (_message.Message,), dict(
+    DESCRIPTOR = _AUTHREQUEST_CHALLENGERESPONSE,
+    __module__ = 'cdp_pb2'
+    # @@protoc_insertion_point(class_scope:AuthRequest.ChallengeResponse)
+    ))
+  ,
+  DESCRIPTOR = _AUTHREQUEST,
   __module__ = 'cdp_pb2'
-  # @@protoc_insertion_point(class_scope:ChallengeResponse)
+  # @@protoc_insertion_point(class_scope:AuthRequest)
   ))
-_sym_db.RegisterMessage(ChallengeResponse)
+_sym_db.RegisterMessage(AuthRequest)
+_sym_db.RegisterMessage(AuthRequest.ChallengeResponse)
+
+AdditionalChallengeResponseRequired = _reflection.GeneratedProtocolMessageType('AdditionalChallengeResponseRequired', (_message.Message,), dict(
+
+  Parameter = _reflection.GeneratedProtocolMessageType('Parameter', (_message.Message,), dict(
+    DESCRIPTOR = _ADDITIONALCHALLENGERESPONSEREQUIRED_PARAMETER,
+    __module__ = 'cdp_pb2'
+    # @@protoc_insertion_point(class_scope:AdditionalChallengeResponseRequired.Parameter)
+    ))
+  ,
+  DESCRIPTOR = _ADDITIONALCHALLENGERESPONSEREQUIRED,
+  __module__ = 'cdp_pb2'
+  # @@protoc_insertion_point(class_scope:AdditionalChallengeResponseRequired)
+  ))
+_sym_db.RegisterMessage(AdditionalChallengeResponseRequired)
+_sym_db.RegisterMessage(AdditionalChallengeResponseRequired.Parameter)
+
+AuthResponse = _reflection.GeneratedProtocolMessageType('AuthResponse', (_message.Message,), dict(
+  DESCRIPTOR = _AUTHRESPONSE,
+  __module__ = 'cdp_pb2'
+  # @@protoc_insertion_point(class_scope:AuthResponse)
+  ))
+_sym_db.RegisterMessage(AuthResponse)
 
 Container = _reflection.GeneratedProtocolMessageType('Container', (_message.Message,), dict(
   DESCRIPTOR = _CONTAINER,
@@ -928,6 +1310,20 @@ Node = _reflection.GeneratedProtocolMessageType('Node', (_message.Message,), dic
   # @@protoc_insertion_point(class_scope:Node)
   ))
 _sym_db.RegisterMessage(Node)
+
+ChildAdd = _reflection.GeneratedProtocolMessageType('ChildAdd', (_message.Message,), dict(
+  DESCRIPTOR = _CHILDADD,
+  __module__ = 'cdp_pb2'
+  # @@protoc_insertion_point(class_scope:ChildAdd)
+  ))
+_sym_db.RegisterMessage(ChildAdd)
+
+ChildRemove = _reflection.GeneratedProtocolMessageType('ChildRemove', (_message.Message,), dict(
+  DESCRIPTOR = _CHILDREMOVE,
+  __module__ = 'cdp_pb2'
+  # @@protoc_insertion_point(class_scope:ChildRemove)
+  ))
+_sym_db.RegisterMessage(ChildRemove)
 
 VariantValue = _reflection.GeneratedProtocolMessageType('VariantValue', (_message.Message,), dict(
   DESCRIPTOR = _VARIANTVALUE,

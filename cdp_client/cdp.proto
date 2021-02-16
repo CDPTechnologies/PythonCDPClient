@@ -14,18 +14,46 @@ message Hello {
   required uint32 compat_version = 2 [default = 1];
   required uint32 incremental_version = 3 [default = 0];
   repeated bytes public_key = 4;
-  optional bytes challenge = 5;
+  optional bytes challenge = 5; // if challenge exists then server expects authentication (AuthRequest message)
+  optional string application_name = 6;
+  optional uint32 cdp_version_major = 7;
+  optional uint32 cdp_version_minor = 8;
+  optional uint32 cdp_version_patch = 9;
 }
 
-/** Server expects this response if it sent a challenge. */
-message ChallengeSolution {
-  required bytes public_key = 1;
-  required bytes signed_data = 2;
+/** Server expects this response if it sent a auth_required true. */
+message AuthRequest {
+  optional string user_id = 1;
+  message ChallengeResponse {
+    optional string type = 1;
+    optional bytes response = 2; // data corresponding to the type, eg. hash(challenge + password)
+  }
+  repeated ChallengeResponse challenge_response = 2;
 }
 
-/** Sent by server as a response to a ChallengeSolution. */
-message ChallengeResponse {
-  required bool success = 1;
+message AdditionalChallengeResponseRequired {
+  optional string type = 1;
+  optional string prompt = 2;
+  message Parameter {
+    optional string name = 1;
+    optional string value = 2;
+  }
+  repeated Parameter parameter = 3;
+}
+
+/** Sent by server as a response to a AuthRequest. */
+message AuthResponse {
+  enum AuthResultCode {
+    eUnknown = 0;
+    eGranted = 1;
+    eGrantedPasswordWillExpireSoon = 2; // expiry timestamp is provided in result_text
+    eNewPasswordRequired = 10; // AuthRequest with additional response with new username + password hash is required
+    eInvalidChallengeResponse = 11;
+    eAdditionalResponseRequired = 12;
+  }
+  optional AuthResultCode result_code = 1;
+  optional string result_text = 2;
+  repeated AdditionalChallengeResponseRequired additional_challenge_response_required = 3;
 }
 
 /** Common union-style base type for all Protobuf messages in StudioAPI. */
@@ -40,6 +68,8 @@ message Container {
     eStructureChangeResponse = 6;
     eCurrentTimeRequest = 7;
     eCurrentTimeResponse = 8;
+    eChildAddRequest = 9;
+    eChildRemoveRequest = 10;
   }
   optional Type message_type = 1;
   optional Error error = 2;
@@ -50,6 +80,8 @@ message Container {
   repeated VariantValue setter_request = 7;
   repeated uint32 structure_change_response = 8; // node ID's which need new structure requests
   optional uint64 current_time_response = 9;
+  repeated ChildAdd child_add_request = 10;
+  repeated ChildRemove child_remove_request = 11;
   extensions 100 to max;
 }
 
@@ -57,12 +89,18 @@ message Container {
 message Error {
   required uint32 code = 1;
   optional string text = 2;
+  optional uint32 node_id = 3;
+  optional string parameter = 4;
   extensions 100 to max;
 }
 
 enum RemoteErrorCode {
   eINVALID_REQUEST = 10;
   eUNSUPPORTED_CONTAINER_TYPE = 20;
+  eVALUE_THROTTLING_OCCURRING = 30;
+  eVALUE_THROTTLING_STOPPED = 31;
+  eCHILD_ADD_FAILED = 40;
+  eCHILD_REMOVE_FAILED = 50;
 }
 
 /** CDP Node base type identifier. */
@@ -110,6 +148,8 @@ message Info {
     eNodeIsRemovable = 8;
     eNodeCanAddChildren = 16;
     eNodeIsRenamable = 32;
+    eNodeIsInternal = 64;
+    eNodeIsImportant = 128;
   }
   required uint32 node_id = 1; // Application wide unique ID for each instance in CDP structure
   required string name = 2; // Local short name
@@ -129,6 +169,21 @@ message Info {
 message Node {
   required Info info = 1;
   repeated Node node = 2;
+  extensions 100 to max;
+}
+
+/** ChildAdd Request input structure */
+message ChildAdd {
+  required uint32 parent_node_id = 1; // parent to add the node into
+  required string child_name = 2; // child name to be added
+  required string child_type_name = 3; // child class name
+  extensions 100 to max;
+}
+
+/** ChildRemove Request input structure */
+message ChildRemove {
+  required uint32 parent_node_id = 1; // parent to remove the node from
+  required string child_name = 2; // child to be removed
   extensions 100 to max;
 }
 

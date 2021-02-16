@@ -1,6 +1,7 @@
 from promise import Promise
 from time import sleep
 from collections import namedtuple
+from hashlib import sha256
 import cdp_client.cdp_pb2 as proto
 import websocket
 import logging
@@ -48,8 +49,9 @@ class UnknownError(Exception):
 
 
 class Client:
-    def __init__(self, host, port=7689, auto_reconnect=True):
-        self._connection = Connection(host, port, auto_reconnect)
+    def __init__(self, host='127.0.0.1', port=7689, auto_reconnect=True, use_encryption=False, encryption_parameters=dict(),
+                 user_id='', password=''):
+        self._connection = Connection(host, port, auto_reconnect, use_encryption, encryption_parameters, user_id, password)
 
     def run_event_loop(self):
         self._connection.run_event_loop()
@@ -296,7 +298,8 @@ class Node:
 
 
 class Connection:
-    def __init__(self, host, port, auto_reconnect):
+    def __init__(self, host, port, auto_reconnect, use_encryption=False, encryption_parameters=dict(),
+                 user_id='', password=''):
         self._node_tree = NodeTree(self)
         self._structure_requests = Requests()
         self._time_request = Promise()
@@ -304,7 +307,16 @@ class Connection:
         self._last_time_diff_update = 0
         self._is_connected = False
         self._auto_reconnect = auto_reconnect
-        self._ws = self._connect("ws://" + host + ":" + str(port))
+        self._use_encryption = use_encryption
+        self._encryption_parameters = encryption_parameters
+        self._challenge = ''
+        self._user_id = user_id
+        self._password = password
+        if use_encryption:
+            protocol = 'wss://'
+        else:
+            protocol = 'ws://'
+        self._ws = self._connect(protocol + host + ":" + str(port))
 
     def node_tree(self):
         return self._node_tree
@@ -330,11 +342,11 @@ class Connection:
         self._compose_and_send_value(variant)
 
     def run_event_loop(self):
-        self._ws.run_forever()
+        self._ws.run_forever(sslopt=self._encryption_parameters)
         while self._auto_reconnect:
             sleep(1)
             self._ws = self._connect(self._ws.url)
-            self._ws.run_forever()
+            self._ws.run_forever(sslopt=self._encryption_parameters)
 
     def close(self):
         self._auto_reconnect = False
@@ -423,11 +435,29 @@ class Connection:
         else:
             return Promise(lambda resolve, reject: resolve())
 
+    def _sync_time(self):
+        self._is_connected = True
+        self._ws.on_message = self._handle_container_message
+        self._update_time_difference().then(self._node_tree.update()).then(self._send_queued_requests())
+
+    def _handle_auth_response(self, message):
+        data = proto.AuthResponse()
+        data.ParseFromString(message)
+        if data.result_code in (data.eGranted, data.eGrantedPasswordWillExpireSoon):
+            self._sync_time()
+        else:
+            self._cleanup_queued_requests(CommunicationError(data.result_text))
+
+    def _authenticate(self):
+        self._ws.on_message = self._handle_auth_response
+        self._compose_and_send_auth_request()
+
     def _handle_hello_message(self, message):
         if self._parse_hello_message(message):
-            self._is_connected = True
-            self._ws.on_message = self._handle_container_message
-            self._update_time_difference().then(self._node_tree.update()).then(self._send_queued_requests())
+            if self._challenge:
+                self._authenticate()
+            else:
+                self._sync_time()
         else:
             self._cleanup_queued_requests(CommunicationError('Protocol mismatch'))
 
@@ -470,6 +500,7 @@ class Connection:
     def _parse_hello_message(self, message):
         data = proto.Hello()
         data.ParseFromString(message)
+        self._challenge = data.challenge
         if data.compat_version == 1:
             return True
         logging.info('Unsupported protocol version ' + str(data.compat_version) + '.' + str(data.incremental_version))
@@ -523,6 +554,15 @@ class Connection:
         data = proto.Container()
         data.message_type = proto.Container.eCurrentTimeRequest
         self._ws.send(data.SerializeToString())
+
+    def _compose_and_send_auth_request(self):
+        request = proto.AuthRequest()
+        request.user_id = self._user_id
+        response = request.challenge_response.add()
+        response.type = "PasswordHash"
+        user_pass_hash = sha256(self._user_id.encode() + b':' + self._password.encode()).digest()
+        response.response = sha256(self._challenge + b':' + user_pass_hash).digest()
+        self._ws.send(request.SerializeToString())
 
 
 class NodeTree:

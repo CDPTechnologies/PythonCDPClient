@@ -1,5 +1,6 @@
 from cdp_client import cdp_pb2 as proto
 from copy import copy
+from hashlib import sha256
 
 value1 = proto.VariantValue()
 value1.node_id = 5
@@ -142,6 +143,15 @@ def create_valid_hello_response():
     return response
 
 
+def create_valid_hello_response_with_auth_required(challenge):
+    response = proto.Hello()
+    response.system_name = "foo"
+    response.compat_version = 1
+    response.incremental_version = 0
+    response.challenge = challenge
+    return response
+
+
 def create_invalid_hello_response():
     response = proto.Hello()
     response.system_name = "foo"
@@ -170,3 +180,25 @@ def create_structure_change_request(node_id):
     request.message_type = proto.Container.eStructureRequest
     request.structure_request.append(node_id)
     return request
+
+
+def create_password_auth_request(challenge, user_id, password):
+    request = proto.AuthRequest()
+    request.user_id = user_id
+    response = request.challenge_response.add()
+    response.type = "PasswordHash"
+    user_pass_hash = sha256(user_id.encode() + b':' + password.encode()).digest()
+    response.response = sha256(challenge + b':' + user_pass_hash).digest()
+    return request
+
+
+def create_auth_response_granted():
+    response = proto.AuthResponse()
+    response.result_code = response.eGranted
+    return response
+
+
+def create_auth_response_denied():
+    response = proto.AuthResponse()
+    response.result_code = response.eInvalidChallengeResponse
+    return response

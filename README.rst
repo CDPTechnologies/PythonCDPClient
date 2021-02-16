@@ -27,7 +27,7 @@ The example below shows how you subscribe to CDP signal value changes.
     def subscribe_to_value_changes(node):
         node.subscribe_to_value_changes(on_value_changed)
 	
-    client = cdp.Client('127.0.0.1')
+    client = cdp.Client(host='127.0.0.1')
     client.find_node('AppName.ComponentName.SignalName').then(subscribe_to_value_changes)
     client.run_event_loop()
 
@@ -43,8 +43,8 @@ Before all examples, you need:
 Global API
 ~~~~~~~~~~
 
-Client(host, port, auto_reconnect)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Client(host, port, auto_reconnect, user_id, password, use_encryption, encryption_parameters)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Arguments
 
@@ -54,15 +54,52 @@ Client(host, port, auto_reconnect)
 
     auto_reconnect - Optional argument to enable/disable automatic reconnect when connection is lost. Defaults to True if not specified.
 
+    user_id - Optional argument to use when server requires authentication - user id (username)
+
+    password  - Optional argument to use when server requires authentication - user password
+
+    use_encryption - Optional boolean argument to set when server uses encryption. Defaults to False.
+
+    encryption_parameters - Optional argument to set encryption parameters, like TLS certificates verification. Parameter is compatible with python websocket client 'sslopt' parameter. For more information see https://pypi.org/project/websocket_client
+
 - Returns
 
     The connected client object.
 
-- Usage
+- Usage example
 
     .. code:: python
 
-        client = cdp.Client('127.0.0.1')
+        client = cdp.Client(host='127.0.0.1')
+
+- Usage example with password authentication
+
+    .. code:: python
+
+        client = cdp.Client(host='127.0.0.1', user_id='test', password='12345678')
+
+- Usage example with password authentication and encryption in use, without server certificate verification
+
+    .. code:: python
+
+        import ssl
+
+        client = cdp.Client(host='127.0.0.1', user_id='test', password='12345678',
+                            use_encryption=True,
+                            encryption_parameters={'cert_reqs': ssl.CERT_NONE})
+
+
+- Usage example with password authentication and encryption in use, with server certificate verification
+
+    .. code:: python
+
+        import ssl
+
+        client = cdp.Client(host='127.0.0.1', user_id='test', password='12345678',
+                            use_encryption=True,
+                            encryption_parameters={'cert_reqs': ssl.CERT_REQUIRED,
+                                                   'ca_certs': 'StudioAPI.crt',
+                                                   'check_hostname': False},
 
 Instance Methods / Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~
