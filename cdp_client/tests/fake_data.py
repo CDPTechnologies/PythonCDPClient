@@ -187,7 +187,7 @@ def create_password_auth_request(challenge, user_id, password):
     request.user_id = user_id
     response = request.challenge_response.add()
     response.type = "PasswordHash"
-    user_pass_hash = sha256(user_id.encode() + b':' + password.encode()).digest()
+    user_pass_hash = sha256(user_id.encode().lower() + b':' + password.encode()).digest()
     response.response = sha256(challenge + b':' + user_pass_hash).digest()
     return request
 

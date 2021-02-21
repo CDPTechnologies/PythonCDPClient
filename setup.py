@@ -10,7 +10,7 @@ def readme():
 
 setup(
     name='cdp-client',
-    version='1.2',
+    version='1.2.1',
     packages=find_packages(),
     install_requires=[
         'promise==2.2.1',

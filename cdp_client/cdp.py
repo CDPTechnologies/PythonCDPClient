@@ -560,7 +560,7 @@ class Connection:
         request.user_id = self._user_id
         response = request.challenge_response.add()
         response.type = "PasswordHash"
-        user_pass_hash = sha256(self._user_id.encode() + b':' + self._password.encode()).digest()
+        user_pass_hash = sha256(self._user_id.lower().encode() + b':' + self._password.encode()).digest()
         response.response = sha256(self._challenge + b':' + user_pass_hash).digest()
         self._ws.send(request.SerializeToString())
 

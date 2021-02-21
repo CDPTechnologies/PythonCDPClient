@@ -143,7 +143,7 @@ class ConnectionTester(unittest.TestCase):
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_password_auth_request_is_sent_when_required_by_server(self, mock_send):
         self.assertEquals(self._connection._is_connected, False)
-        self._connection._user_id = "testuser"
+        self._connection._user_id = "Testuser"
         self._connection._password = "testpass"
         self._connection._handle_hello_message(fake_data.create_valid_hello_response_with_auth_required(b'challenge')
                                                .SerializeToString())
