@@ -19,11 +19,13 @@ message Hello {
   optional uint32 cdp_version_major = 7;
   optional uint32 cdp_version_minor = 8;
   optional uint32 cdp_version_patch = 9;
+  optional uint32 idle_lockout_period = 10;
+  optional string system_use_notification = 11;
 }
 
 /** Server expects this response if it sent a auth_required true. */
 message AuthRequest {
-  optional string user_id = 1;
+  optional string user_id = 1; // case-insensitive (can be sent in any casing)
   message ChallengeResponse {
     optional string type = 1;
     optional bytes response = 2; // data corresponding to the type, eg. hash(challenge + password)
@@ -70,6 +72,9 @@ message Container {
     eCurrentTimeResponse = 8;
     eChildAddRequest = 9;
     eChildRemoveRequest = 10;
+    eReAuthRequest = 11;
+    eReAuthResponse = 12;
+    eActivityNotification = 13;
   }
   optional Type message_type = 1;
   optional Error error = 2;
@@ -82,6 +87,8 @@ message Container {
   optional uint64 current_time_response = 9;
   repeated ChildAdd child_add_request = 10;
   repeated ChildRemove child_remove_request = 11;
+  optional AuthRequest re_auth_request = 12;
+  optional AuthResponse re_auth_response = 13;
   extensions 100 to max;
 }
 
@@ -91,10 +98,14 @@ message Error {
   optional string text = 2;
   optional uint32 node_id = 3;
   optional string parameter = 4;
+  optional bytes challenge = 5; // new challenge for re-authentication, used with code = eAUTH_RESPONSE_EXPIRED
+  optional uint32 idle_lockout_period = 6; // updated value for idle lockout period, used with code = eAUTH_RESPONSE_EXPIRED
   extensions 100 to max;
 }
 
 enum RemoteErrorCode {
+  eAUTH_RESPONSE_EXPIRED = 1; // connection is in non-authenticated state (e.g. because of session inactivity timeout) -
+                              // full reconnect or new AuthRequest with ChallengeResponse is needed to continue
   eINVALID_REQUEST = 10;
   eUNSUPPORTED_CONTAINER_TYPE = 20;
   eVALUE_THROTTLING_OCCURRING = 30;
@@ -213,5 +224,8 @@ message ValueRequest {
   optional double fs = 2; // If present indicates that values expected no more often than provided FS rate
                           // (server will accumulate and time-stamp values if they occur more often)
   optional bool stop = 3; // If true target must stop updates on the provided values else this is start
+  optional double sample_rate = 4; // If non zero indicates that values should be
+                                   // sampled with given sampling rate frequency (samples/second)
+                                   // missing or zero means all samples must be provided
   extensions 100 to max;
 }

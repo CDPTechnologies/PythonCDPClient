@@ -135,11 +135,12 @@ def create_time_response(time):
     return response
 
 
-def create_valid_hello_response():
+def create_valid_hello_response(system_use_notification=''):
     response = proto.Hello()
     response.system_name = "foo"
     response.compat_version = 1
     response.incremental_version = 0
+    response.system_use_notification = system_use_notification
     return response
 
 
@@ -192,6 +193,19 @@ def create_password_auth_request(challenge, user_id, password):
     return request
 
 
+def create_container_with_password_auth_request(challenge, user_id, password):
+    request = proto.AuthRequest()
+    request.user_id = user_id
+    response = request.challenge_response.add()
+    response.type = "PasswordHash"
+    user_pass_hash = sha256(user_id.encode().lower() + b':' + password.encode()).digest()
+    response.response = sha256(challenge + b':' + user_pass_hash).digest()
+    container = proto.Container()
+    container.message_type = proto.Container.eReAuthRequest
+    container.re_auth_request.CopyFrom(request)
+    return container
+
+
 def create_auth_response_granted():
     response = proto.AuthResponse()
     response.result_code = response.eGranted
@@ -201,4 +215,13 @@ def create_auth_response_granted():
 def create_auth_response_denied():
     response = proto.AuthResponse()
     response.result_code = response.eInvalidChallengeResponse
+    return response
+
+
+def create_auth_response_expired_error(challenge):
+    response = proto.Container()
+    response.message_type = proto.Container.eRemoteError
+    response.error.code = proto.eAUTH_RESPONSE_EXPIRED
+    response.error.text = "Session expired"
+    response.error.challenge = challenge
     return response
