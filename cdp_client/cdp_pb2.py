@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto2',
   serialized_options=None,
-  serialized_pb=_b('\n\tcdp.proto\"\xe9\x01\n\x05Hello\x12\x13\n\x0bsystem_name\x18\x01 \x02(\t\x12\x19\n\x0e\x63ompat_version\x18\x02 \x02(\r:\x01\x31\x12\x1e\n\x13incremental_version\x18\x03 \x02(\r:\x01\x30\x12\x12\n\npublic_key\x18\x04 \x03(\x0c\x12\x11\n\tchallenge\x18\x05 \x01(\x0c\x12\x18\n\x10\x61pplication_name\x18\x06 \x01(\t\x12\x19\n\x11\x63\x64p_version_major\x18\x07 \x01(\r\x12\x19\n\x11\x63\x64p_version_minor\x18\x08 \x01(\r\x12\x19\n\x11\x63\x64p_version_patch\x18\t \x01(\r\"\x8f\x01\n\x0b\x41uthRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12:\n\x12\x63hallenge_response\x18\x02 \x03(\x0b\x32\x1e.AuthRequest.ChallengeResponse\x1a\x33\n\x11\x43hallengeResponse\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08response\x18\x02 \x01(\x0c\"\xb0\x01\n#AdditionalChallengeResponseRequired\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0e\n\x06prompt\x18\x02 \x01(\t\x12\x41\n\tparameter\x18\x03 \x03(\x0b\x32..AdditionalChallengeResponseRequired.Parameter\x1a(\n\tParameter\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xd9\x02\n\x0c\x41uthResponse\x12\x31\n\x0bresult_code\x18\x01 \x01(\x0e\x32\x1c.AuthResponse.AuthResultCode\x12\x13\n\x0bresult_text\x18\x02 \x01(\t\x12T\n&additional_challenge_response_required\x18\x03 \x03(\x0b\x32$.AdditionalChallengeResponseRequired\"\xaa\x01\n\x0e\x41uthResultCode\x12\x0c\n\x08\x65Unknown\x10\x00\x12\x0c\n\x08\x65Granted\x10\x01\x12\"\n\x1e\x65GrantedPasswordWillExpireSoon\x10\x02\x12\x18\n\x14\x65NewPasswordRequired\x10\n\x12\x1d\n\x19\x65InvalidChallengeResponse\x10\x0b\x12\x1f\n\x1b\x65\x41\x64\x64itionalResponseRequired\x10\x0c\"\xa2\x05\n\tContainer\x12%\n\x0cmessage_type\x18\x01 \x01(\x0e\x32\x0f.Container.Type\x12\x15\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.Error\x12\x19\n\x11structure_request\x18\x03 \x03(\r\x12!\n\x12structure_response\x18\x04 \x03(\x0b\x32\x05.Node\x12%\n\x0egetter_request\x18\x05 \x03(\x0b\x32\r.ValueRequest\x12&\n\x0fgetter_response\x18\x06 \x03(\x0b\x32\r.VariantValue\x12%\n\x0esetter_request\x18\x07 \x03(\x0b\x32\r.VariantValue\x12!\n\x19structure_change_response\x18\x08 \x03(\r\x12\x1d\n\x15\x63urrent_time_response\x18\t \x01(\x04\x12$\n\x11\x63hild_add_request\x18\n \x03(\x0b\x32\t.ChildAdd\x12*\n\x14\x63hild_remove_request\x18\x0b \x03(\x0b\x32\x0c.ChildRemove\"\x84\x02\n\x04Type\x12\x10\n\x0c\x65RemoteError\x10\x00\x12\x15\n\x11\x65StructureRequest\x10\x01\x12\x16\n\x12\x65StructureResponse\x10\x02\x12\x12\n\x0e\x65GetterRequest\x10\x03\x12\x13\n\x0f\x65GetterResponse\x10\x04\x12\x12\n\x0e\x65SetterRequest\x10\x05\x12\x1c\n\x18\x65StructureChangeResponse\x10\x06\x12\x17\n\x13\x65\x43urrentTimeRequest\x10\x07\x12\x18\n\x14\x65\x43urrentTimeResponse\x10\x08\x12\x14\n\x10\x65\x43hildAddRequest\x10\t\x12\x17\n\x13\x65\x43hildRemoveRequest\x10\n*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"Q\n\x05\x45rror\x12\x0c\n\x04\x63ode\x18\x01 \x02(\r\x12\x0c\n\x04text\x18\x02 \x01(\t\x12\x0f\n\x07node_id\x18\x03 \x01(\r\x12\x11\n\tparameter\x18\x04 \x01(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\x96\x03\n\x04Info\x12\x0f\n\x07node_id\x18\x01 \x02(\r\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x1f\n\tnode_type\x18\x03 \x02(\x0e\x32\x0c.CDPNodeType\x12!\n\nvalue_type\x18\x04 \x01(\x0e\x32\r.CDPValueType\x12\x11\n\ttype_name\x18\x05 \x01(\t\x12\x13\n\x0bserver_addr\x18\x06 \x01(\t\x12\x13\n\x0bserver_port\x18\x07 \x01(\r\x12\x10\n\x08is_local\x18\x08 \x01(\x08\x12\r\n\x05\x66lags\x18\t \x01(\r\"\xc2\x01\n\x05\x46lags\x12\t\n\x05\x65None\x10\x00\x12\x0f\n\x0b\x65NodeIsLeaf\x10\x01\x12\x16\n\x12\x65ValueIsPersistent\x10\x02\x12\x14\n\x10\x65ValueIsReadOnly\x10\x04\x12\x14\n\x10\x65NodeIsRemovable\x10\x08\x12\x17\n\x13\x65NodeCanAddChildren\x10\x10\x12\x14\n\x10\x65NodeIsRenamable\x10 \x12\x13\n\x0f\x65NodeIsInternal\x10@\x12\x15\n\x10\x65NodeIsImportant\x10\x80\x01*\x08\x08\x64\x10\x80\x80\x80\x80\x02\":\n\x04Node\x12\x13\n\x04info\x18\x01 \x02(\x0b\x32\x05.Info\x12\x13\n\x04node\x18\x02 \x03(\x0b\x32\x05.Node*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"Y\n\x08\x43hildAdd\x12\x16\n\x0eparent_node_id\x18\x01 \x02(\r\x12\x12\n\nchild_name\x18\x02 \x02(\t\x12\x17\n\x0f\x63hild_type_name\x18\x03 \x02(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"C\n\x0b\x43hildRemove\x12\x16\n\x0eparent_node_id\x18\x01 \x02(\r\x12\x12\n\nchild_name\x18\x02 \x02(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\x92\x02\n\x0cVariantValue\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x0f\n\x07\x64_value\x18\x02 \x01(\x01\x12\x0f\n\x07\x66_value\x18\x03 \x01(\x02\x12\x12\n\nui64_value\x18\x04 \x01(\x04\x12\x11\n\ti64_value\x18\x05 \x01(\x12\x12\x10\n\x08ui_value\x18\x06 \x01(\r\x12\x0f\n\x07i_value\x18\x07 \x01(\x11\x12\x10\n\x08us_value\x18\x08 \x01(\r\x12\x0f\n\x07s_value\x18\t \x01(\x11\x12\x10\n\x08uc_value\x18\n \x01(\r\x12\x0f\n\x07\x63_value\x18\x0b \x01(\x11\x12\x0f\n\x07\x62_value\x18\x0c \x01(\x08\x12\x11\n\tstr_value\x18\r \x01(\t\x12\x11\n\ttimestamp\x18\x0e \x01(\x04*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"C\n\x0cValueRequest\x12\x0f\n\x07node_id\x18\x01 \x02(\r\x12\n\n\x02\x66s\x18\x02 \x01(\x01\x12\x0c\n\x04stop\x18\x03 \x01(\x08*\x08\x08\x64\x10\x80\x80\x80\x80\x02*\xb9\x01\n\x0fRemoteErrorCode\x12\x14\n\x10\x65INVALID_REQUEST\x10\n\x12\x1f\n\x1b\x65UNSUPPORTED_CONTAINER_TYPE\x10\x14\x12\x1f\n\x1b\x65VALUE_THROTTLING_OCCURRING\x10\x1e\x12\x1d\n\x19\x65VALUE_THROTTLING_STOPPED\x10\x1f\x12\x15\n\x11\x65\x43HILD_ADD_FAILED\x10(\x12\x18\n\x14\x65\x43HILD_REMOVE_FAILED\x10\x32*\xfb\x01\n\x0b\x43\x44PNodeType\x12\x1a\n\rCDP_UNDEFINED\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x0e\n\nCDP_SYSTEM\x10\x00\x12\x13\n\x0f\x43\x44P_APPLICATION\x10\x01\x12\x11\n\rCDP_COMPONENT\x10\x02\x12\x0e\n\nCDP_OBJECT\x10\x03\x12\x0f\n\x0b\x43\x44P_MESSAGE\x10\x04\x12\x13\n\x0f\x43\x44P_BASE_OBJECT\x10\x05\x12\x10\n\x0c\x43\x44P_PROPERTY\x10\x06\x12\x0f\n\x0b\x43\x44P_SETTING\x10\x07\x12\x0c\n\x08\x43\x44P_ENUM\x10\x08\x12\x10\n\x0c\x43\x44P_OPERATOR\x10\t\x12\x0c\n\x08\x43\x44P_NODE\x10\n\x12\x11\n\rCDP_USER_TYPE\x10\x64*\xbc\x01\n\x0c\x43\x44PValueType\x12\x0e\n\neUNDEFINED\x10\x00\x12\x0b\n\x07\x65\x44OUBLE\x10\x01\x12\x0b\n\x07\x65UINT64\x10\x02\x12\n\n\x06\x65INT64\x10\x03\x12\n\n\x06\x65\x46LOAT\x10\x04\x12\t\n\x05\x65UINT\x10\x05\x12\x08\n\x04\x65INT\x10\x06\x12\x0b\n\x07\x65USHORT\x10\x07\x12\n\n\x06\x65SHORT\x10\x08\x12\n\n\x06\x65UCHAR\x10\t\x12\t\n\x05\x65\x43HAR\x10\n\x12\t\n\x05\x65\x42OOL\x10\x0b\x12\x0b\n\x07\x65STRING\x10\x0c\x12\r\n\teUSERTYPE\x10\x64')
+  serialized_pb=_b('\n\tcdp.proto\"\xa7\x02\n\x05Hello\x12\x13\n\x0bsystem_name\x18\x01 \x02(\t\x12\x19\n\x0e\x63ompat_version\x18\x02 \x02(\r:\x01\x31\x12\x1e\n\x13incremental_version\x18\x03 \x02(\r:\x01\x30\x12\x12\n\npublic_key\x18\x04 \x03(\x0c\x12\x11\n\tchallenge\x18\x05 \x01(\x0c\x12\x18\n\x10\x61pplication_name\x18\x06 \x01(\t\x12\x19\n\x11\x63\x64p_version_major\x18\x07 \x01(\r\x12\x19\n\x11\x63\x64p_version_minor\x18\x08 \x01(\r\x12\x19\n\x11\x63\x64p_version_patch\x18\t \x01(\r\x12\x1b\n\x13idle_lockout_period\x18\n \x01(\r\x12\x1f\n\x17system_use_notification\x18\x0b \x01(\t\"\x8f\x01\n\x0b\x41uthRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12:\n\x12\x63hallenge_response\x18\x02 \x03(\x0b\x32\x1e.AuthRequest.ChallengeResponse\x1a\x33\n\x11\x43hallengeResponse\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08response\x18\x02 \x01(\x0c\"\xb0\x01\n#AdditionalChallengeResponseRequired\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0e\n\x06prompt\x18\x02 \x01(\t\x12\x41\n\tparameter\x18\x03 \x03(\x0b\x32..AdditionalChallengeResponseRequired.Parameter\x1a(\n\tParameter\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xd9\x02\n\x0c\x41uthResponse\x12\x31\n\x0bresult_code\x18\x01 \x01(\x0e\x32\x1c.AuthResponse.AuthResultCode\x12\x13\n\x0bresult_text\x18\x02 \x01(\t\x12T\n&additional_challenge_response_required\x18\x03 \x03(\x0b\x32$.AdditionalChallengeResponseRequired\"\xaa\x01\n\x0e\x41uthResultCode\x12\x0c\n\x08\x65Unknown\x10\x00\x12\x0c\n\x08\x65Granted\x10\x01\x12\"\n\x1e\x65GrantedPasswordWillExpireSoon\x10\x02\x12\x18\n\x14\x65NewPasswordRequired\x10\n\x12\x1d\n\x19\x65InvalidChallengeResponse\x10\x0b\x12\x1f\n\x1b\x65\x41\x64\x64itionalResponseRequired\x10\x0c\"\xb6\x06\n\tContainer\x12%\n\x0cmessage_type\x18\x01 \x01(\x0e\x32\x0f.Container.Type\x12\x15\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.Error\x12\x19\n\x11structure_request\x18\x03 \x03(\r\x12!\n\x12structure_response\x18\x04 \x03(\x0b\x32\x05.Node\x12%\n\x0egetter_request\x18\x05 \x03(\x0b\x32\r.ValueRequest\x12&\n\x0fgetter_response\x18\x06 \x03(\x0b\x32\r.VariantValue\x12%\n\x0esetter_request\x18\x07 \x03(\x0b\x32\r.VariantValue\x12!\n\x19structure_change_response\x18\x08 \x03(\r\x12\x1d\n\x15\x63urrent_time_response\x18\t \x01(\x04\x12$\n\x11\x63hild_add_request\x18\n \x03(\x0b\x32\t.ChildAdd\x12*\n\x14\x63hild_remove_request\x18\x0b \x03(\x0b\x32\x0c.ChildRemove\x12%\n\x0fre_auth_request\x18\x0c \x01(\x0b\x32\x0c.AuthRequest\x12\'\n\x10re_auth_response\x18\r \x01(\x0b\x32\r.AuthResponse\"\xc8\x02\n\x04Type\x12\x10\n\x0c\x65RemoteError\x10\x00\x12\x15\n\x11\x65StructureRequest\x10\x01\x12\x16\n\x12\x65StructureResponse\x10\x02\x12\x12\n\x0e\x65GetterRequest\x10\x03\x12\x13\n\x0f\x65GetterResponse\x10\x04\x12\x12\n\x0e\x65SetterRequest\x10\x05\x12\x1c\n\x18\x65StructureChangeResponse\x10\x06\x12\x17\n\x13\x65\x43urrentTimeRequest\x10\x07\x12\x18\n\x14\x65\x43urrentTimeResponse\x10\x08\x12\x14\n\x10\x65\x43hildAddRequest\x10\t\x12\x17\n\x13\x65\x43hildRemoveRequest\x10\n\x12\x12\n\x0e\x65ReAuthRequest\x10\x0b\x12\x13\n\x0f\x65ReAuthResponse\x10\x0c\x12\x19\n\x15\x65\x41\x63tivityNotification\x10\r*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\x81\x01\n\x05\x45rror\x12\x0c\n\x04\x63ode\x18\x01 \x02(\r\x12\x0c\n\x04text\x18\x02 \x01(\t\x12\x0f\n\x07node_id\x18\x03 \x01(\r\x12\x11\n\tparameter\x18\x04 \x01(\t\x12\x11\n\tchallenge\x18\x05 \x01(\x0c\x12\x1b\n\x13idle_lockout_period\x18\x06 \x01(\r*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\x96\x03\n\x04Info\x12\x0f\n\x07node_id\x18\x01 \x02(\r\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x1f\n\tnode_type\x18\x03 \x02(\x0e\x32\x0c.CDPNodeType\x12!\n\nvalue_type\x18\x04 \x01(\x0e\x32\r.CDPValueType\x12\x11\n\ttype_name\x18\x05 \x01(\t\x12\x13\n\x0bserver_addr\x18\x06 \x01(\t\x12\x13\n\x0bserver_port\x18\x07 \x01(\r\x12\x10\n\x08is_local\x18\x08 \x01(\x08\x12\r\n\x05\x66lags\x18\t \x01(\r\"\xc2\x01\n\x05\x46lags\x12\t\n\x05\x65None\x10\x00\x12\x0f\n\x0b\x65NodeIsLeaf\x10\x01\x12\x16\n\x12\x65ValueIsPersistent\x10\x02\x12\x14\n\x10\x65ValueIsReadOnly\x10\x04\x12\x14\n\x10\x65NodeIsRemovable\x10\x08\x12\x17\n\x13\x65NodeCanAddChildren\x10\x10\x12\x14\n\x10\x65NodeIsRenamable\x10 \x12\x13\n\x0f\x65NodeIsInternal\x10@\x12\x15\n\x10\x65NodeIsImportant\x10\x80\x01*\x08\x08\x64\x10\x80\x80\x80\x80\x02\":\n\x04Node\x12\x13\n\x04info\x18\x01 \x02(\x0b\x32\x05.Info\x12\x13\n\x04node\x18\x02 \x03(\x0b\x32\x05.Node*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"Y\n\x08\x43hildAdd\x12\x16\n\x0eparent_node_id\x18\x01 \x02(\r\x12\x12\n\nchild_name\x18\x02 \x02(\t\x12\x17\n\x0f\x63hild_type_name\x18\x03 \x02(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"C\n\x0b\x43hildRemove\x12\x16\n\x0eparent_node_id\x18\x01 \x02(\r\x12\x12\n\nchild_name\x18\x02 \x02(\t*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"\x92\x02\n\x0cVariantValue\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x0f\n\x07\x64_value\x18\x02 \x01(\x01\x12\x0f\n\x07\x66_value\x18\x03 \x01(\x02\x12\x12\n\nui64_value\x18\x04 \x01(\x04\x12\x11\n\ti64_value\x18\x05 \x01(\x12\x12\x10\n\x08ui_value\x18\x06 \x01(\r\x12\x0f\n\x07i_value\x18\x07 \x01(\x11\x12\x10\n\x08us_value\x18\x08 \x01(\r\x12\x0f\n\x07s_value\x18\t \x01(\x11\x12\x10\n\x08uc_value\x18\n \x01(\r\x12\x0f\n\x07\x63_value\x18\x0b \x01(\x11\x12\x0f\n\x07\x62_value\x18\x0c \x01(\x08\x12\x11\n\tstr_value\x18\r \x01(\t\x12\x11\n\ttimestamp\x18\x0e \x01(\x04*\x08\x08\x64\x10\x80\x80\x80\x80\x02\"X\n\x0cValueRequest\x12\x0f\n\x07node_id\x18\x01 \x02(\r\x12\n\n\x02\x66s\x18\x02 \x01(\x01\x12\x0c\n\x04stop\x18\x03 \x01(\x08\x12\x13\n\x0bsample_rate\x18\x04 \x01(\x01*\x08\x08\x64\x10\x80\x80\x80\x80\x02*\xd5\x01\n\x0fRemoteErrorCode\x12\x1a\n\x16\x65\x41UTH_RESPONSE_EXPIRED\x10\x01\x12\x14\n\x10\x65INVALID_REQUEST\x10\n\x12\x1f\n\x1b\x65UNSUPPORTED_CONTAINER_TYPE\x10\x14\x12\x1f\n\x1b\x65VALUE_THROTTLING_OCCURRING\x10\x1e\x12\x1d\n\x19\x65VALUE_THROTTLING_STOPPED\x10\x1f\x12\x15\n\x11\x65\x43HILD_ADD_FAILED\x10(\x12\x18\n\x14\x65\x43HILD_REMOVE_FAILED\x10\x32*\xfb\x01\n\x0b\x43\x44PNodeType\x12\x1a\n\rCDP_UNDEFINED\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x0e\n\nCDP_SYSTEM\x10\x00\x12\x13\n\x0f\x43\x44P_APPLICATION\x10\x01\x12\x11\n\rCDP_COMPONENT\x10\x02\x12\x0e\n\nCDP_OBJECT\x10\x03\x12\x0f\n\x0b\x43\x44P_MESSAGE\x10\x04\x12\x13\n\x0f\x43\x44P_BASE_OBJECT\x10\x05\x12\x10\n\x0c\x43\x44P_PROPERTY\x10\x06\x12\x0f\n\x0b\x43\x44P_SETTING\x10\x07\x12\x0c\n\x08\x43\x44P_ENUM\x10\x08\x12\x10\n\x0c\x43\x44P_OPERATOR\x10\t\x12\x0c\n\x08\x43\x44P_NODE\x10\n\x12\x11\n\rCDP_USER_TYPE\x10\x64*\xbc\x01\n\x0c\x43\x44PValueType\x12\x0e\n\neUNDEFINED\x10\x00\x12\x0b\n\x07\x65\x44OUBLE\x10\x01\x12\x0b\n\x07\x65UINT64\x10\x02\x12\n\n\x06\x65INT64\x10\x03\x12\n\n\x06\x65\x46LOAT\x10\x04\x12\t\n\x05\x65UINT\x10\x05\x12\x08\n\x04\x65INT\x10\x06\x12\x0b\n\x07\x65USHORT\x10\x07\x12\n\n\x06\x65SHORT\x10\x08\x12\n\n\x06\x65UCHAR\x10\t\x12\t\n\x05\x65\x43HAR\x10\n\x12\t\n\x05\x65\x42OOL\x10\x0b\x12\x0b\n\x07\x65STRING\x10\x0c\x12\r\n\teUSERTYPE\x10\x64')
 )
 
 _REMOTEERRORCODE = _descriptor.EnumDescriptor(
@@ -30,34 +30,38 @@ _REMOTEERRORCODE = _descriptor.EnumDescriptor(
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='eINVALID_REQUEST', index=0, number=10,
+      name='eAUTH_RESPONSE_EXPIRED', index=0, number=1,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='eUNSUPPORTED_CONTAINER_TYPE', index=1, number=20,
+      name='eINVALID_REQUEST', index=1, number=10,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='eVALUE_THROTTLING_OCCURRING', index=2, number=30,
+      name='eUNSUPPORTED_CONTAINER_TYPE', index=2, number=20,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='eVALUE_THROTTLING_STOPPED', index=3, number=31,
+      name='eVALUE_THROTTLING_OCCURRING', index=3, number=30,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='eCHILD_ADD_FAILED', index=4, number=40,
+      name='eVALUE_THROTTLING_STOPPED', index=4, number=31,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='eCHILD_REMOVE_FAILED', index=5, number=50,
+      name='eCHILD_ADD_FAILED', index=5, number=40,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eCHILD_REMOVE_FAILED', index=6, number=50,
       serialized_options=None,
       type=None),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2658,
-  serialized_end=2843,
+  serialized_start=2938,
+  serialized_end=3151,
 )
 _sym_db.RegisterEnumDescriptor(_REMOTEERRORCODE)
 
@@ -123,8 +127,8 @@ _CDPNODETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2846,
-  serialized_end=3097,
+  serialized_start=3154,
+  serialized_end=3405,
 )
 _sym_db.RegisterEnumDescriptor(_CDPNODETYPE)
 
@@ -194,12 +198,13 @@ _CDPVALUETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=3100,
-  serialized_end=3288,
+  serialized_start=3408,
+  serialized_end=3596,
 )
 _sym_db.RegisterEnumDescriptor(_CDPVALUETYPE)
 
 CDPValueType = enum_type_wrapper.EnumTypeWrapper(_CDPVALUETYPE)
+eAUTH_RESPONSE_EXPIRED = 1
 eINVALID_REQUEST = 10
 eUNSUPPORTED_CONTAINER_TYPE = 20
 eVALUE_THROTTLING_OCCURRING = 30
@@ -268,8 +273,8 @@ _AUTHRESPONSE_AUTHRESULTCODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=750,
-  serialized_end=920,
+  serialized_start=812,
+  serialized_end=982,
 )
 _sym_db.RegisterEnumDescriptor(_AUTHRESPONSE_AUTHRESULTCODE)
 
@@ -323,11 +328,23 @@ _CONTAINER_TYPE = _descriptor.EnumDescriptor(
       name='eChildRemoveRequest', index=10, number=10,
       serialized_options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eReAuthRequest', index=11, number=11,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eReAuthResponse', index=12, number=12,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='eActivityNotification', index=13, number=13,
+      serialized_options=None,
+      type=None),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1327,
-  serialized_end=1587,
+  serialized_start=1469,
+  serialized_end=1797,
 )
 _sym_db.RegisterEnumDescriptor(_CONTAINER_TYPE)
 
@@ -376,8 +393,8 @@ _INFO_FLAGS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1885,
-  serialized_end=2079,
+  serialized_start=2144,
+  serialized_end=2338,
 )
 _sym_db.RegisterEnumDescriptor(_INFO_FLAGS)
 
@@ -452,6 +469,20 @@ _HELLO = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='idle_lockout_period', full_name='Hello.idle_lockout_period', index=9,
+      number=10, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='system_use_notification', full_name='Hello.system_use_notification', index=10,
+      number=11, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -465,7 +496,7 @@ _HELLO = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=14,
-  serialized_end=247,
+  serialized_end=309,
 )
 
 
@@ -502,8 +533,8 @@ _AUTHREQUEST_CHALLENGERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=342,
-  serialized_end=393,
+  serialized_start=404,
+  serialized_end=455,
 )
 
 _AUTHREQUEST = _descriptor.Descriptor(
@@ -539,8 +570,8 @@ _AUTHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=250,
-  serialized_end=393,
+  serialized_start=312,
+  serialized_end=455,
 )
 
 
@@ -577,8 +608,8 @@ _ADDITIONALCHALLENGERESPONSEREQUIRED_PARAMETER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=532,
-  serialized_end=572,
+  serialized_start=594,
+  serialized_end=634,
 )
 
 _ADDITIONALCHALLENGERESPONSEREQUIRED = _descriptor.Descriptor(
@@ -621,8 +652,8 @@ _ADDITIONALCHALLENGERESPONSEREQUIRED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=396,
-  serialized_end=572,
+  serialized_start=458,
+  serialized_end=634,
 )
 
 
@@ -667,8 +698,8 @@ _AUTHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=575,
-  serialized_end=920,
+  serialized_start=637,
+  serialized_end=982,
 )
 
 
@@ -756,6 +787,20 @@ _CONTAINER = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='re_auth_request', full_name='Container.re_auth_request', index=11,
+      number=12, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='re_auth_response', full_name='Container.re_auth_response', index=12,
+      number=13, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -769,8 +814,8 @@ _CONTAINER = _descriptor.Descriptor(
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=923,
-  serialized_end=1597,
+  serialized_start=985,
+  serialized_end=1807,
 )
 
 
@@ -809,6 +854,20 @@ _ERROR = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='challenge', full_name='Error.challenge', index=4,
+      number=5, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='idle_lockout_period', full_name='Error.idle_lockout_period', index=5,
+      number=6, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -821,8 +880,8 @@ _ERROR = _descriptor.Descriptor(
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=1599,
-  serialized_end=1680,
+  serialized_start=1810,
+  serialized_end=1939,
 )
 
 
@@ -909,8 +968,8 @@ _INFO = _descriptor.Descriptor(
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=1683,
-  serialized_end=2089,
+  serialized_start=1942,
+  serialized_end=2348,
 )
 
 
@@ -947,8 +1006,8 @@ _NODE = _descriptor.Descriptor(
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=2091,
-  serialized_end=2149,
+  serialized_start=2350,
+  serialized_end=2408,
 )
 
 
@@ -992,8 +1051,8 @@ _CHILDADD = _descriptor.Descriptor(
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=2151,
-  serialized_end=2240,
+  serialized_start=2410,
+  serialized_end=2499,
 )
 
 
@@ -1030,8 +1089,8 @@ _CHILDREMOVE = _descriptor.Descriptor(
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=2242,
-  serialized_end=2309,
+  serialized_start=2501,
+  serialized_end=2568,
 )
 
 
@@ -1152,8 +1211,8 @@ _VARIANTVALUE = _descriptor.Descriptor(
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=2312,
-  serialized_end=2586,
+  serialized_start=2571,
+  serialized_end=2845,
 )
 
 
@@ -1185,6 +1244,13 @@ _VALUEREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='sample_rate', full_name='ValueRequest.sample_rate', index=3,
+      number=4, type=1, cpp_type=5, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -1197,8 +1263,8 @@ _VALUEREQUEST = _descriptor.Descriptor(
   extension_ranges=[(100, 536870912), ],
   oneofs=[
   ],
-  serialized_start=2588,
-  serialized_end=2655,
+  serialized_start=2847,
+  serialized_end=2935,
 )
 
 _AUTHREQUEST_CHALLENGERESPONSE.containing_type = _AUTHREQUEST
@@ -1216,6 +1282,8 @@ _CONTAINER.fields_by_name['getter_response'].message_type = _VARIANTVALUE
 _CONTAINER.fields_by_name['setter_request'].message_type = _VARIANTVALUE
 _CONTAINER.fields_by_name['child_add_request'].message_type = _CHILDADD
 _CONTAINER.fields_by_name['child_remove_request'].message_type = _CHILDREMOVE
+_CONTAINER.fields_by_name['re_auth_request'].message_type = _AUTHREQUEST
+_CONTAINER.fields_by_name['re_auth_response'].message_type = _AUTHRESPONSE
 _CONTAINER_TYPE.containing_type = _CONTAINER
 _INFO.fields_by_name['node_type'].enum_type = _CDPNODETYPE
 _INFO.fields_by_name['value_type'].enum_type = _CDPVALUETYPE

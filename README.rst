@@ -43,8 +43,8 @@ Before all examples, you need:
 Global API
 ~~~~~~~~~~
 
-Client(host, port, auto_reconnect, user_id, password, use_encryption, encryption_parameters)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Client(host, port, auto_reconnect, notification_listener, encryption_parameters)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Arguments
 
@@ -54,13 +54,9 @@ Client(host, port, auto_reconnect, user_id, password, use_encryption, encryption
 
     auto_reconnect - Optional argument to enable/disable automatic reconnect when connection is lost. Defaults to True if not specified.
 
-    user_id - Optional argument to use when server requires authentication - user id (username)
+    notification_listener - NotificationListener object whose methods are called on different connection events (e.g. when server requires credentials)
 
-    password  - Optional argument to use when server requires authentication - user password
-
-    use_encryption - Optional boolean argument to set when server uses encryption. Defaults to False.
-
-    encryption_parameters - Optional argument to set encryption parameters, like TLS certificates verification. Parameter is compatible with python websocket client 'sslopt' parameter. For more information see https://pypi.org/project/websocket_client
+    encryption_parameters - Optional argument to set encryption and its parameters, TLS certificates verification etc. Parameter is compatible with python websocket client 'sslopt' parameter. For more information see https://pypi.org/project/websocket_client
 
 - Returns
 
@@ -76,7 +72,13 @@ Client(host, port, auto_reconnect, user_id, password, use_encryption, encryption
 
     .. code:: python
 
-        client = cdp.Client(host='127.0.0.1', user_id='test', password='12345678')
+        class MyListener(cdp.NotificationListener):
+            def credentials_requested(self, request):
+                if request.user_auth_result().code() == cdp.AuthResultCode.CREDENTIALS_REQUIRED:
+                    # Do something to gather username and password variables (either sync or async way) and then call:
+                    request.accept({'Username': 'test', 'Password': '12345678'});
+
+        client = cdp.Client(host='127.0.0.1', notification_listener=MyListener())
 
 - Usage example with password authentication and encryption in use, without server certificate verification
 
@@ -84,9 +86,14 @@ Client(host, port, auto_reconnect, user_id, password, use_encryption, encryption
 
         import ssl
 
-        client = cdp.Client(host='127.0.0.1', user_id='test', password='12345678',
-                            use_encryption=True,
-                            encryption_parameters={'cert_reqs': ssl.CERT_NONE})
+        class MyListener(cdp.NotificationListener):
+            def credentials_requested(self, request):
+                if request.user_auth_result().code() == cdp.AuthResultCode.CREDENTIALS_REQUIRED:
+                    # Do something to gather username and password variables (either sync or async way) and then call:
+                    request.accept({'Username': 'test', 'Password': '12345678'});
+
+        client = cdp.Client(host='127.0.0.1', notification_listener=MyListener(),
+                            encryption_parameters={'use_encryption': True, 'cert_reqs': ssl.CERT_NONE})
 
 
 - Usage example with password authentication and encryption in use, with server certificate verification
@@ -95,9 +102,15 @@ Client(host, port, auto_reconnect, user_id, password, use_encryption, encryption
 
         import ssl
 
-        client = cdp.Client(host='127.0.0.1', user_id='test', password='12345678',
-                            use_encryption=True,
-                            encryption_parameters={'cert_reqs': ssl.CERT_REQUIRED,
+        class MyListener(cdp.NotificationListener):
+            def credentials_requested(self, request):
+                if request.user_auth_result().code() == cdp.AuthResultCode.CREDENTIALS_REQUIRED:
+                    # Do something to gather username and password variables (either sync or async way) and then call:
+                    request.accept({'Username': 'test', 'Password': '12345678'});
+
+        client = cdp.Client(host='127.0.0.1', notification_listener=MyListener(),
+                            encryption_parameters={'use_encryption': True,
+                                                   'cert_reqs': ssl.CERT_REQUIRED,
                                                    'ca_certs': 'StudioAPI.crt',
                                                    'check_hostname': False},
 
@@ -335,6 +348,71 @@ Stops listening previously subscribed value changes
             do something
 	
         node.unsubscribe_from_value_changes(on_change)
+
+Notification Listener
+~~~~~~~~~~~~~~~~~~~~~
+
+To handle different connection events (like prompt user to accept a system use notification message or request user to enter credentials for authentication or idle lockout re-authentication) a notification_listener parameter must be provided to the Client.
+The notification_listener parameter must be a object of type class cdp.NotificationListener.
+
+class NotificationListener
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    .. code:: python
+
+        class NotificationListener:
+            def application_acceptance_requested(self, request=AuthRequest()):
+                request.accept()
+
+            def credentials_requested(self, request=AuthRequest()):
+                raise NotImplementedError("NotificationListener credentials_requested() not implemented!")
+
+NotificationListener.application_acceptance_requested(self, request=AuthRequest())
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Called by Client when new application TLS or plain TCP connection is established.
+Can be used to prompt the user a System Use Notification (a message that can be configured in CDP Studio Security settings).
+
+- Arguments
+
+    request - a object that has method accept() that should be called to accept the connection and a reject() to reject the connection.
+
+- Usage
+
+    .. code:: python
+
+        class MyListener(cdp.NotificationListener):
+            def application_acceptance_requested(self, request):
+                if request.system_use_notification():
+                    # Pop up a System Use Notification message and ask for confirmation to continue,
+                    # then based on the user answer call either request.accept() or request.reject()
+                else:
+                    request.accept()
+
+        client = cdp.Client(host='127.0.0.1', port=7689, notification_listener=MyListener())
+
+NotificationListener.credentials_requested(self, request=AuthRequest())
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Called by Client when server is requesting credentials (authentication or idle lockout re-authentication).
+
+- Arguments
+
+    request - a object that has method accept(data=dict()) that should be called (with credentials) for authentication try, and also a method reject() to reject the connection.
+
+- Usage
+
+    .. code:: python
+
+        class MyListener(cdp.NotificationListener):
+            def credentials_requested(self, request):
+                if request.user_auth_result().code() == cdp.AuthResultCode.CREDENTIALS_REQUIRED:
+                    # Do something to gather username and password variables (either sync or async way) and then call:
+                    request.accept({'Username': 'test', 'Password': '12345678'});
+                if request.user_auth_result().code() == cdp.AuthResultCode.REAUTHENTICATIONREQUIRED:
+                    # Pop user a message that idle lockout was happened and server requires new authentication to continue:
+                    request.accept({'Username': 'test', 'Password': '12345678'});
+
+        client = cdp.Client(host='127.0.0.1', port=7689, notification_listener=MyListener())
 
 Tests
 -----

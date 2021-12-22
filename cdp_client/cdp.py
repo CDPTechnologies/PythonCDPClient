@@ -48,10 +48,91 @@ class UnknownError(Exception):
     pass
 
 
+AuthResultCode = enum(
+    CREDENTIALS_REQUIRED=0,
+    # OK results:
+    GRANTED=1, # is also set when no authentication required
+    GRANTEDPASSWORDWILLEXPIRESOON = 2, # user should be notified about coming soon password expiry
+                                       # with suggestion to set a new password ASAP
+    # negative results:
+    NEWPASSWORDREQUIRED = 10, # password was OK but is expired, so new AuthRequest with additional
+                              # response with new password hash is required, and new password
+                              # complexity rules should be read from additionalCredentials[CredentialNewpassword].parameters
+    INVALIDCHALLENGERESPONSE = 11,
+    ADDITIONALRESPONSEREQUIRED = 12,
+    TEMPORARILYBLOCKED = 13,
+    REAUTHENTICATIONREQUIRED = 14 # server requires re-authentication (e.g.because of being idle),
+                                  # implementation should prompt the user for re-authentication
+                                  # (must not silently send cached credentials)
+)
+
+class UserAuthResult:
+    def __init__(self, code=AuthResultCode.CREDENTIALS_REQUIRED, text='', additional_credentials=None):
+        self._code = code
+        self._text = text
+        self._additional_credentials = additional_credentials
+
+    def code(self):
+        return self._code
+
+    def text(self):
+        return self._text
+
+    def additional_credentials(self):
+        return self._additional_credentials
+
+
+class AuthRequest(Promise):
+    def __init__(self, system_name='', application_name='', host='', port='', cdp_version='',
+                 system_use_notification=None, user_auth_result=UserAuthResult()):
+        self._system_name = system_name
+        self._application_name = application_name
+        self._host = host
+        self._port = port
+        self._cdp_version = cdp_version
+        self._system_use_notification = system_use_notification
+        self._user_auth_result = user_auth_result
+
+    def system_name(self):
+        return self._system_name
+
+    def application_name(self):
+        return self._application_name
+
+    def host(self):
+        return self._host
+
+    def port(self):
+        return self._port
+
+    def cdp_version(self):
+        return self._cdp_version
+
+    def user_auth_result(self):
+        return self._user_auth_result
+
+    def system_use_notification(self):
+        return self._system_use_notification
+
+    def accept(self, data=dict()):
+        self.do_resolve(data)
+
+    def reject(self):
+        self.do_reject(UnknownError('Authentication rejected'))
+
+
+class NotificationListener:
+    def application_acceptance_requested(self, request=AuthRequest()):
+        request.accept()
+
+    def credentials_requested(self, request=AuthRequest()):
+        raise NotImplementedError("NotificationListener credentials_requested() not implemented!")
+
+
 class Client:
-    def __init__(self, host='127.0.0.1', port=7689, auto_reconnect=True, use_encryption=False, encryption_parameters=dict(),
-                 user_id='', password=''):
-        self._connection = Connection(host, port, auto_reconnect, use_encryption, encryption_parameters, user_id, password)
+    def __init__(self, host='127.0.0.1', port=7689, auto_reconnect=True, notification_listener=NotificationListener(),
+                 encryption_parameters=dict()):
+        self._connection = Connection(host, port, auto_reconnect, notification_listener, encryption_parameters)
 
     def run_event_loop(self):
         self._connection.run_event_loop()
@@ -298,8 +379,14 @@ class Node:
 
 
 class Connection:
-    def __init__(self, host, port, auto_reconnect, use_encryption=False, encryption_parameters=dict(),
-                 user_id='', password=''):
+    def __init__(self, host, port, auto_reconnect, notification_listener=NotificationListener(),
+                 encryption_parameters=dict()):
+        self._host = host
+        self._port = port
+        self._system_name = ''
+        self._application_name = ''
+        self._cdp_version = ''
+        self._system_use_notification = None
         self._node_tree = NodeTree(self)
         self._structure_requests = Requests()
         self._time_request = Promise()
@@ -307,16 +394,16 @@ class Connection:
         self._last_time_diff_update = 0
         self._is_connected = False
         self._auto_reconnect = auto_reconnect
-        self._use_encryption = use_encryption
+        self._notification_listener = notification_listener
         self._encryption_parameters = encryption_parameters
         self._challenge = ''
-        self._user_id = user_id
-        self._password = password
-        if use_encryption:
+        self._credentials = dict()
+        if 'use_encryption' in self._encryption_parameters and self._encryption_parameters['use_encryption']:
             protocol = 'wss://'
         else:
             protocol = 'ws://'
         self._ws = self._connect(protocol + host + ":" + str(port))
+        self._re_auth_request = None
 
     def node_tree(self):
         return self._node_tree
@@ -446,20 +533,54 @@ class Connection:
         if data.result_code in (data.eGranted, data.eGrantedPasswordWillExpireSoon):
             self._sync_time()
         else:
-            self._cleanup_queued_requests(CommunicationError(data.result_text))
+            auth_request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
+                                       application_name=self._application_name, cdp_version=self._cdp_version,
+                                       system_use_notification=self._system_use_notification,
+                                       user_auth_result=UserAuthResult(code=data.result_code,
+                                                                       text=data.result_text,
+                                                                       additional_credentials=data.additional_challenge_response_required))
+            auth_request.then(self._authenticate)
+            self._notification_listener.credentials_requested(auth_request)
 
-    def _authenticate(self):
+    def _authenticate(self, credentials):
         self._ws.on_message = self._handle_auth_response
+        self._credentials = credentials
         self._compose_and_send_auth_request()
+
+    def _re_authenticate(self, credentials):
+        self._credentials = credentials
+        self._compose_and_send_re_auth_request()
 
     def _handle_hello_message(self, message):
         if self._parse_hello_message(message):
-            if self._challenge:
-                self._authenticate()
-            else:
-                self._sync_time()
+            request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
+                                  application_name=self._application_name, cdp_version=self._cdp_version,
+                                  system_use_notification=self._system_use_notification)
+            request.then(self._handle_application_acceptance)
+            self._notification_listener.application_acceptance_requested(request)
         else:
             self._cleanup_queued_requests(CommunicationError('Protocol mismatch'))
+
+    def _handle_application_acceptance(self, message):
+        if self._challenge:
+            request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
+                                  application_name=self._application_name, cdp_version=self._cdp_version,
+                                  system_use_notification=self._system_use_notification,
+                                  user_auth_result=UserAuthResult(code=AuthResultCode.CREDENTIALS_REQUIRED,
+                                                                  text='Credentials required'))
+            request.then(self._authenticate)
+            self._notification_listener.credentials_requested(request)
+        else:
+            self._sync_time()
+
+    def _handle_re_auth_request(self, message):
+        if not self._re_auth_request:
+            self._re_auth_request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
+                                                application_name=self._application_name, cdp_version=self._cdp_version,
+                                                user_auth_result=UserAuthResult(code=AuthResultCode.REAUTHENTICATIONREQUIRED,
+                                                                                text=message))
+            self._re_auth_request.then(self._re_authenticate)
+            self._notification_listener.credentials_requested(self._re_auth_request)
 
     def _handle_container_message(self, message):
         data = proto.Container()
@@ -472,6 +593,8 @@ class Connection:
             self._parse_structure_change_response(data.structure_change_response)
         elif data.message_type == proto.Container.eCurrentTimeResponse:
             self._parse_current_time_response(data.current_time_response)
+        elif data.message_type == proto.Container.eReAuthResponse:
+            self._parse_re_auth_response(data.re_auth_response)
         elif data.message_type == proto.Container.eRemoteError:
             self._parse_error_response(data.error)
         else:
@@ -491,8 +614,23 @@ class Connection:
     def _parse_current_time_response(self, response):
         self._time_request.do_resolve(response)
 
+    def _parse_re_auth_response(self, response):
+        if response.result_code not in (response.eGranted, response.eGrantedPasswordWillExpireSoon):
+            self._re_auth_request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
+                                                application_name=self._application_name, cdp_version=self._cdp_version,
+                                                user_auth_result=UserAuthResult(code=response.result_code,
+                                                                                text=response.result_text,
+                                                                                additional_credentials=response.additional_challenge_response_required))
+            self._re_auth_request.then(self._re_authenticate)
+            self._notification_listener.credentials_requested(self._re_auth_request)
+        else:
+            self._re_auth_request = None
+
     def _parse_error_response(self, error):
-        if error.code == proto.eINVALID_REQUEST:
+        if error.code == proto.eAUTH_RESPONSE_EXPIRED:
+            self._challenge = error.challenge
+            self._handle_re_auth_request(error.text)
+        elif error.code == proto.eINVALID_REQUEST:
             self._cleanup_queued_requests(InvalidRequestError(error.text))
         elif error.code == proto.eUNSUPPORTED_CONTAINER_TYPE:
             self._cleanup_queued_requests(CommunicationError(error.text))
@@ -500,11 +638,17 @@ class Connection:
     def _parse_hello_message(self, message):
         data = proto.Hello()
         data.ParseFromString(message)
+        if data.compat_version != 1:
+            logging.info('Unsupported protocol version ' + str(data.compat_version) + '.' + str(data.incremental_version))
+            return False
+        self._system_name = data.system_name
+        self._application_name = data.application_name
+        self._cdp_version = str(data.cdp_version_major) + '.' + \
+                            str(data.cdp_version_minor) + '.' + \
+                            str(data.cdp_version_patch)
         self._challenge = data.challenge
-        if data.compat_version == 1:
-            return True
-        logging.info('Unsupported protocol version ' + str(data.compat_version) + '.' + str(data.incremental_version))
-        return False
+        self._system_use_notification = data.system_use_notification
+        return True
 
     def _parse_structure_response(self, response):
         for structure in response:
@@ -555,15 +699,29 @@ class Connection:
         data.message_type = proto.Container.eCurrentTimeRequest
         self._ws.send(data.SerializeToString())
 
+    def _compose_auth_request(self, request):
+        if not 'Username' in self._credentials:
+            UnknownError("NotificationListener.credentials_requested() didn't return 'Username' entry")
+        request.user_id = self._credentials['Username']
+        if 'Password' in self._credentials:
+            response = request.challenge_response.add()
+            response.type = "PasswordHash"
+            user_pass_hash = sha256(request.user_id.lower().encode() + b':' + self._credentials['Password'].encode()).digest()
+            response.response = sha256(self._challenge + b':' + user_pass_hash).digest()
+        return request
+
     def _compose_and_send_auth_request(self):
         request = proto.AuthRequest()
-        request.user_id = self._user_id
-        response = request.challenge_response.add()
-        response.type = "PasswordHash"
-        user_pass_hash = sha256(self._user_id.lower().encode() + b':' + self._password.encode()).digest()
-        response.response = sha256(self._challenge + b':' + user_pass_hash).digest()
+        self._compose_auth_request(request)
         self._ws.send(request.SerializeToString())
 
+    def _compose_and_send_re_auth_request(self):
+        container = proto.Container()
+        container.message_type = proto.Container.eReAuthRequest
+        request = proto.AuthRequest()
+        self._compose_auth_request(request)
+        container.re_auth_request.CopyFrom(request)
+        self._ws.send(container.SerializeToString())
 
 class NodeTree:
     def __init__(self, connection):

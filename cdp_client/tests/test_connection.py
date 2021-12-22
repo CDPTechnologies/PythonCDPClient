@@ -6,6 +6,30 @@ import mock
 
 
 class ConnectionTester(unittest.TestCase):
+    class TestNotificationListener(cdp.NotificationListener):
+        def __init__(self, credentials=dict(), accept_app=True):
+            self.application_acceptance_call_count = 0
+            self.system_use_notification_received = None
+            self.credentials_requested_call_count = 0
+            self._credentials = credentials
+            self._accept_app = accept_app
+
+        def application_acceptance_requested(self, request):
+            self.application_acceptance_call_count += 1
+            self.system_use_notification_received = request.system_use_notification()
+            if self._accept_app:
+                request.accept()
+            else:
+                request.reject()
+
+        def credentials_requested(self, request):
+            self.credentials_requested_call_count += 1
+            if self._credentials:
+                request.accept(self._credentials)
+            else:
+                request.reject()
+
+
     def __init__(self, method_name):
         unittest.TestCase.__init__(self, method_name)
         self._connection = None
@@ -69,14 +93,14 @@ class ConnectionTester(unittest.TestCase):
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_connected_state_is_set_when_receiving_hello_message_with_correct_version(self, mock_send):
-        self.assertEquals(self._connection._is_connected, False)
+        self.assertFalse(self._connection._is_connected)
         self._connection._handle_hello_message(fake_data.create_valid_hello_response().SerializeToString())
-        self.assertEquals(self._connection._is_connected, True)
+        self.assertTrue(self._connection._is_connected)
 
     def test_connected_state_is_unset_when_receiving_hello_message_with_incorrect_version(self):
-        self.assertEquals(self._connection._is_connected, False)
+        self.assertFalse(self._connection._is_connected)
         self._connection._handle_hello_message(fake_data.create_invalid_hello_response().SerializeToString())
-        self.assertEquals(self._connection._is_connected, False)
+        self.assertFalse(self._connection._is_connected)
 
     @mock.patch.object(cdp.NodeTree, 'find_by_id')
     @mock.patch.object(cdp.Node, '_update_value')
@@ -141,26 +165,111 @@ class ConnectionTester(unittest.TestCase):
         self.assertFalse(mock_send.called)
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
-    def test_password_auth_request_is_sent_when_required_by_server(self, mock_send):
-        self.assertEquals(self._connection._is_connected, False)
-        self._connection._user_id = "Testuser"
-        self._connection._password = "testpass"
+    def test_accept_request_is_sent_when_hello_is_received(self, mock_send):
+        self._connection._notification_listener = self.TestNotificationListener()
+
+        self._connection._handle_hello_message(fake_data.create_valid_hello_response(system_use_notification='Notification')
+                                               .SerializeToString())
+
+        self.assertEqual(self._connection._notification_listener.application_acceptance_call_count, 1)
+        self.assertEqual(self._connection._notification_listener.system_use_notification_received, 'Notification')
+        self.assertTrue(mock_send.called)
+        mock_send.assert_any_call(fake_data.create_time_request().SerializeToString())
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    def test_auth_request_is_sent_when_required_by_server(self, mock_send):
+        self._connection._notification_listener = \
+            self.TestNotificationListener({'Username': 'Testuser', 'Password': 'testpass'})
+
         self._connection._handle_hello_message(fake_data.create_valid_hello_response_with_auth_required(b'challenge')
                                                .SerializeToString())
+        self.assertEqual(self._connection._notification_listener.application_acceptance_call_count, 1)
+        self.assertEqual(self._connection._notification_listener.credentials_requested_call_count, 1)
         self.assertTrue(mock_send.called)
-        mock_send.assert_any_call(fake_data.create_password_auth_request(self._connection._challenge,
-                                                                         self._connection._user_id,
-                                                                         self._connection._password).SerializeToString())
-        self.assertEquals(self._connection._is_connected, False)
+        mock_send.assert_any_call(
+            fake_data.create_password_auth_request(self._connection._challenge,
+                                                   self._connection._credentials['Username'],
+                                                   self._connection._credentials['Password']).SerializeToString())
+        self.assertFalse(self._connection._is_connected)
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_connected_state_is_set_when_receiving_auth_response_granted(self, mock_send):
-        self.assertEquals(self._connection._is_connected, False)
+        self.assertFalse(self._connection._is_connected)
+
         self._connection._handle_auth_response(fake_data.create_auth_response_granted().SerializeToString())
-        self.assertEquals(self._connection._is_connected, True)
+
+        self.assertTrue(self._connection._is_connected)
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
-    def test_connected_state_is_set_when_receiving_auth_response_invalid(self, mock_send):
-        self.assertEquals(self._connection._is_connected, False)
+    def test_auth_request_is_resent_when_receiving_auth_response_denied(self, mock_send):
+        self._connection._challenge = b'challenge'
+        self._connection._notification_listener = \
+            self.TestNotificationListener({'Username': 'Testuser', 'Password': 'testpass'})
+
         self._connection._handle_auth_response(fake_data.create_auth_response_denied().SerializeToString())
-        self.assertEquals(self._connection._is_connected, False)
+
+        self.assertEqual(self._connection._notification_listener.application_acceptance_call_count, 0)
+        self.assertEqual(self._connection._notification_listener.credentials_requested_call_count, 1)
+        self.assertTrue(mock_send.called)
+        mock_send.assert_any_call(
+            fake_data.create_password_auth_request(self._connection._challenge,
+                                                   self._connection._credentials['Username'],
+                                                   self._connection._credentials['Password']).SerializeToString())
+        self.assertFalse(self._connection._is_connected)
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    def test_connected_state_is_set_failed_when_user_rejects_credentials_request(self, mock_send):
+        self._connection._notification_listener = self.TestNotificationListener()
+
+        self._connection._handle_hello_message(fake_data.create_valid_hello_response_with_auth_required(b'challenge')
+                                               .SerializeToString())
+        self.assertFalse(mock_send.called)
+        self.assertFalse(self._connection._is_connected)
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    def test_re_auth_request_is_sent_when_idle_lockout_is_received(self, mock_send):
+        self._connection._notification_listener = \
+            self.TestNotificationListener({'Username': 'Testuser', 'Password': 'testpass'})
+
+        self._connection._handle_container_message(fake_data.create_auth_response_expired_error(b'challenge').SerializeToString())
+
+        self.assertEqual(self._connection._notification_listener.application_acceptance_call_count, 0)
+        self.assertEqual(self._connection._notification_listener.credentials_requested_call_count, 1)
+        self.assertTrue(mock_send.called)
+        mock_send.assert_any_call(
+            fake_data.create_container_with_password_auth_request(self._connection._challenge,
+                                                                  self._connection._credentials['Username'],
+                                                                  self._connection._credentials['Password']).SerializeToString())
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    def test_pending_request_is_cleared_when_receiving_re_auth_response_granted(self, mock_send):
+        self._connection._parse_re_auth_response(fake_data.create_auth_response_granted())
+
+        self.assertEqual(None, self._connection._re_auth_request)
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    def test_re_auth_request_is_resent_when_receiving_re_auth_response_denied(self, mock_send):
+        self._connection._challenge = b'challenge'
+        self._connection._notification_listener = \
+            self.TestNotificationListener({'Username': 'Testuser', 'Password': 'testpass'})
+
+        self._connection._parse_re_auth_response(fake_data.create_auth_response_denied())
+
+        self.assertEqual(self._connection._notification_listener.application_acceptance_call_count, 0)
+        self.assertEqual(self._connection._notification_listener.credentials_requested_call_count, 1)
+        self.assertTrue(mock_send.called)
+        mock_send.assert_any_call(
+            fake_data.create_container_with_password_auth_request(self._connection._challenge,
+                                                                  self._connection._credentials['Username'],
+                                                                  self._connection._credentials['Password']).SerializeToString())
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    def test_connected_state_is_set_failed_when_user_rejects_re_auth_credentials_request(self, mock_send):
+        self._connection._notification_listener = self.TestNotificationListener()
+
+        self._connection._handle_container_message(fake_data.create_auth_response_expired_error(b'challenge').SerializeToString())
+
+        self.assertEqual(self._connection._notification_listener.application_acceptance_call_count, 0)
+        self.assertEqual(self._connection._notification_listener.credentials_requested_call_count, 1)
+        self.assertFalse(mock_send.called)
+        self.assertFalse(self._connection._is_connected)
