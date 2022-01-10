@@ -52,18 +52,18 @@ AuthResultCode = enum(
     CREDENTIALS_REQUIRED=0,
     # OK results:
     GRANTED=1, # is also set when no authentication required
-    GRANTEDPASSWORDWILLEXPIRESOON = 2, # user should be notified about coming soon password expiry
-                                       # with suggestion to set a new password ASAP
+    GRANTED_PASSWORD_WILL_EXPIRE_SOON = 2, # user should be notified about coming soon password expiry
+                                           # with suggestion to set a new password ASAP
     # negative results:
-    NEWPASSWORDREQUIRED = 10, # password was OK but is expired, so new AuthRequest with additional
-                              # response with new password hash is required, and new password
-                              # complexity rules should be read from additionalCredentials[CredentialNewpassword].parameters
-    INVALIDCHALLENGERESPONSE = 11,
-    ADDITIONALRESPONSEREQUIRED = 12,
-    TEMPORARILYBLOCKED = 13,
-    REAUTHENTICATIONREQUIRED = 14 # server requires re-authentication (e.g.because of being idle),
-                                  # implementation should prompt the user for re-authentication
-                                  # (must not silently send cached credentials)
+    NEW_PASSWORD_REQUIRED = 10, # password was OK but is expired, so new AuthRequest with additional
+                                # response with new password hash is required, and new password
+                                # complexity rules should be read from additionalCredentials[CredentialNewpassword].parameters
+    INVALID_CHALLENGE_RESPONSE = 11,
+    ADDITIONAL_RESPONSE_REQUIRED = 12,
+    TEMPORARILY_BLOCKED = 13,
+    REAUTHENTICATION_REQUIRED = 14 # server requires re-authentication (e.g.because of being idle),
+                                   # implementation should prompt the user for re-authentication
+                                   # (must not silently send cached credentials)
 )
 
 class UserAuthResult:
@@ -577,7 +577,7 @@ class Connection:
         if not self._re_auth_request:
             self._re_auth_request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
                                                 application_name=self._application_name, cdp_version=self._cdp_version,
-                                                user_auth_result=UserAuthResult(code=AuthResultCode.REAUTHENTICATIONREQUIRED,
+                                                user_auth_result=UserAuthResult(code=AuthResultCode.REAUTHENTICATION_REQUIRED,
                                                                                 text=message))
             self._re_auth_request.then(self._re_authenticate)
             self._notification_listener.credentials_requested(self._re_auth_request)
@@ -593,7 +593,7 @@ class Connection:
             self._parse_structure_change_response(data.structure_change_response)
         elif data.message_type == proto.Container.eCurrentTimeResponse:
             self._parse_current_time_response(data.current_time_response)
-        elif data.message_type == proto.Container.eReAuthResponse:
+        elif data.message_type == proto.Container.eReauthResponse:
             self._parse_re_auth_response(data.re_auth_response)
         elif data.message_type == proto.Container.eRemoteError:
             self._parse_error_response(data.error)
@@ -717,7 +717,7 @@ class Connection:
 
     def _compose_and_send_re_auth_request(self):
         container = proto.Container()
-        container.message_type = proto.Container.eReAuthRequest
+        container.message_type = proto.Container.eReauthRequest
         request = proto.AuthRequest()
         self._compose_auth_request(request)
         container.re_auth_request.CopyFrom(request)

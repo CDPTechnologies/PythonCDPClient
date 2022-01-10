@@ -201,7 +201,7 @@ def create_container_with_password_auth_request(challenge, user_id, password):
     user_pass_hash = sha256(user_id.encode().lower() + b':' + password.encode()).digest()
     response.response = sha256(challenge + b':' + user_pass_hash).digest()
     container = proto.Container()
-    container.message_type = proto.Container.eReAuthRequest
+    container.message_type = proto.Container.eReauthRequest
     container.re_auth_request.CopyFrom(request)
     return container
 

@@ -50,8 +50,11 @@ message AuthResponse {
     eGranted = 1;
     eGrantedPasswordWillExpireSoon = 2; // expiry timestamp is provided in result_text
     eNewPasswordRequired = 10; // AuthRequest with additional response with new username + password hash is required
-    eInvalidChallengeResponse = 11;
-    eAdditionalResponseRequired = 12;
+    eInvalidChallengeResponse = 11; // challenge response sent was invalid
+    eAdditionalResponseRequired = 12; // additional challenge responses based on additional credential types are required
+    eTemporarilyBlocked = 13; // authentication is temporarily blocked because of too many failed attempts
+    eReauthenticationRequired = 14; // server requires re-authentication (e.g. because of being idle), implementation
+                                    // should prompt the user for re-authentication (must not silently send challenge response based on cached credentials)
   }
   optional AuthResultCode result_code = 1;
   optional string result_text = 2;
@@ -72,8 +75,8 @@ message Container {
     eCurrentTimeResponse = 8;
     eChildAddRequest = 9;
     eChildRemoveRequest = 10;
-    eReAuthRequest = 11;
-    eReAuthResponse = 12;
+    eReauthRequest = 11;
+    eReauthResponse = 12;
     eActivityNotification = 13;
   }
   optional Type message_type = 1;
