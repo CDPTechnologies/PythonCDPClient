@@ -408,7 +408,7 @@ Called by Client when server is requesting credentials (authentication or idle l
                 if request.user_auth_result().code() == cdp.AuthResultCode.CREDENTIALS_REQUIRED:
                     # Do something to gather username and password variables (either sync or async way) and then call:
                     request.accept({'Username': 'test', 'Password': '12345678'});
-                if request.user_auth_result().code() == cdp.AuthResultCode.REAUTHENTICATIONREQUIRED:
+                if request.user_auth_result().code() == cdp.AuthResultCode.REAUTHENTICATION_REQUIRED:
                     # Pop user a message that idle lockout was happened and server requires new authentication to continue:
                     request.accept({'Username': 'test', 'Password': '12345678'});
 
