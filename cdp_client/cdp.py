@@ -638,7 +638,7 @@ class Connection:
     def _parse_hello_message(self, message):
         data = proto.Hello()
         data.ParseFromString(message)
-        if data.compat_version != 1:
+        if data.compat_version < 1:
             logging.info('Unsupported protocol version ' + str(data.compat_version) + '.' + str(data.incremental_version))
             return False
         self._system_name = data.system_name

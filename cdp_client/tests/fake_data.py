@@ -156,7 +156,7 @@ def create_valid_hello_response_with_auth_required(challenge):
 def create_invalid_hello_response():
     response = proto.Hello()
     response.system_name = "foo"
-    response.compat_version = 2
+    response.compat_version = 0
     response.incremental_version = 0
     return response
 
