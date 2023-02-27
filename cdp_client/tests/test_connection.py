@@ -67,8 +67,10 @@ class ConnectionTester(unittest.TestCase):
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_sending_value_request(self, mock_send):
         node_id = 1
-        self._connection.send_value_request(node_id)
-        mock_send.assert_any_call(fake_data.create_value_request(node_id).SerializeToString())
+        fs = 1
+        sample_rate = 1
+        self._connection.send_value_request(node_id, fs, sample_rate)
+        mock_send.assert_any_call(fake_data.create_value_request(node_id, fs, sample_rate).SerializeToString())
 
     @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
     def test_sending_value_unrequest(self, mock_send):

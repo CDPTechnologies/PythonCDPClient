@@ -294,14 +294,18 @@ Starts listening structure changes and passes the changes to provided callback f
 
         node.subscribe_to_structure_changes(on_change)
 
-node.subscribe_to_value_changes(callback)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+node.subscribe_to_value_changes(callback, fs=5, sample_rate=0)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Starts listening value changes and passes the changes to provided callback function
 
 - Arguments
 
     callback - Function(value, timestamp)
+
+    fs - Maximum frequency that value updates are expected (controls how many changes are sent in a single packet). Defaults to 5 hz.
+    
+    sample_rate - Maximum amount of value updates sent per second (controls the amount of data transferred). Zero means all samples must be provided. Defaults to 0.
 
 - Usage
 

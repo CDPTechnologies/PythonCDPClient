@@ -149,12 +149,11 @@ class NodeTester(unittest.TestCase):
         def on_change(value, timestamp):
             actual_values.append(value)
             timestamps.append(timestamp)
-
         actual_values = []
         timestamps = []
         node = cdp.Node(None, self._connection, data.value1_node)
-        node.subscribe_to_value_changes(on_change)
-        mock_send_value_request.assert_called_once_with(node._id())
+        node.subscribe_to_value_changes(on_change, 10, 5)
+        mock_send_value_request.assert_called_once_with(node._id(), 10, 5)
 
         expected_values = [data.value1, data.value2]
         for value in expected_values:
@@ -165,6 +164,42 @@ class NodeTester(unittest.TestCase):
         for index, value in enumerate(expected_values):
             self.assertEquals(actual_values[index], value.d_value)
             self.assertEquals(timestamps[index], value.timestamp)
+    
+    @mock.patch.object(cdp.Connection, 'send_value_request')
+    def test_value_subscription_max_fs(self, mock_send_value_request):
+        def on_change1():
+            pass
+        def on_change2():
+            pass
+        def on_change3():
+            pass
+        node = cdp.Node(None, self._connection, data.value1_node)
+        node.subscribe_to_value_changes(on_change1, 3, 1)
+        mock_send_value_request.assert_called_once_with(node._id(), 3, 1)
+        mock_send_value_request.reset_mock()
+        node.subscribe_to_value_changes(on_change2, 10, 6)
+        mock_send_value_request.assert_called_once_with(node._id(), 10, 6)
+        mock_send_value_request.reset_mock()
+        node.subscribe_to_value_changes(on_change3, 1, 3)
+        mock_send_value_request.assert_called_once_with(node._id(), 10, 6)
+
+    @mock.patch.object(cdp.Connection, 'send_structure_request')
+    @mock.patch.object(cdp.Connection, 'send_value_request')
+    def test_value_subscription_max_fs_on_update(self, mock_send_value_request, mock_send_structure_request):
+        def on_change1():
+            pass
+        def on_change2():
+            pass
+        def on_change3():
+            pass
+        node = cdp.Node(None, self._connection, data.value1_node)
+        node.subscribe_to_value_changes(on_change1, 3, 1)
+        node.subscribe_to_value_changes(on_change2, 10, 6)
+        node.subscribe_to_value_changes(on_change3, 1, 6)
+        mock_send_value_request.reset_mock()
+        mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(self._root_node))
+        node._update()
+        mock_send_value_request.assert_called_once_with(node._id(), 10, 6)
 
     @mock.patch.object(cdp.Connection, 'send_value_request')
     @mock.patch.object(cdp.Connection, 'send_value_unrequest')
@@ -175,8 +210,24 @@ class NodeTester(unittest.TestCase):
         values = []
         node = cdp.Node(None, self._connection, data.value1_node)
         node.subscribe_to_value_changes(on_change)
-        mock_send_value_request.assert_called_once_with(node._id())
+        mock_send_value_request.assert_called_once_with(node._id(), 5, 0)
         node.unsubscribe_from_value_changes(on_change)
         mock_send_value_unrequest.assert_called_once_with(node._id())
         node._update_value(data.value1)
         self.assertEquals(len(values), 0)
+
+    @mock.patch.object(cdp.Connection, 'send_value_request')
+    def test_value_unsubscription_max_fs(self, mock_send_value_request):
+        def on_change1():
+            pass
+        def on_change2():
+            pass
+        def on_change3():
+            pass
+        node = cdp.Node(None, self._connection, data.value1_node)
+        node.subscribe_to_value_changes(on_change1, 5, 1)
+        node.subscribe_to_value_changes(on_change2, 1, 3)
+        node.subscribe_to_value_changes(on_change3, 10, 6)
+        mock_send_value_request.reset_mock()
+        node.unsubscribe_from_value_changes(on_change3)
+        mock_send_value_request.assert_called_once_with(node._id(), 5, 3)

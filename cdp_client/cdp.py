@@ -218,16 +218,18 @@ class Node:
     def subscribe_to_structure_changes(self, callback):
         self._structure_subscriptions.append(callback)
 
-    def subscribe_to_value_changes(self, callback):
-        self._value_subscriptions.append(callback)
-        self._connection.send_value_request(self._id())
+    def subscribe_to_value_changes(self, callback, fs=5, sample_rate=0):
+        self._value_subscriptions.append((callback, fs, sample_rate))
+        self._send_value_request()
 
     def unsubscribe_from_structure_changes(self, callback):
         self._structure_subscriptions.remove(callback)
 
     def unsubscribe_from_value_changes(self, callback):
-        self._value_subscriptions.remove(callback)
-        if not self._value_subscriptions:
+        self._value_subscriptions = [i for i in self._value_subscriptions if i[0] != callback]
+        if self._value_subscriptions:
+            self._send_value_request()
+        else:
             self._connection.send_value_unrequest(self._id())
 
     def _id(self):
@@ -243,10 +245,15 @@ class Node:
 
         def fetch_value(node):
             if self._value_subscriptions:
-                self._connection.send_value_request(self._id())
+                self._send_value_request()
             return Promise(lambda resolve, reject: resolve(node))
 
         return fetch_structure().then(update_structure).then(fetch_value)
+
+    def _send_value_request(self):
+        max_fs = max(self._value_subscriptions, key=lambda e: e[1])[1]
+        max_sample_rate = max(self._value_subscriptions, key=lambda e: e[2])[2]
+        self._connection.send_value_request(self._id(), max_fs, max_sample_rate)
 
     def _update_structure(self, structure):
         self._structure = structure
@@ -287,7 +294,7 @@ class Node:
 
     def _update_value(self, variant):
         self._value = self._value_from_variant(self._structure.info.value_type, variant)
-        for callback in self._value_subscriptions:
+        for callback, fs, sample_rate in self._value_subscriptions:
             callback(self._value, variant.timestamp + self._connection.server_time_difference() * nanoseconds_in_second)
 
     @staticmethod
@@ -416,13 +423,13 @@ class Connection:
             self._compose_and_send_structure_request(node_id)
         return p
 
-    def send_value_request(self, node_id):
+    def send_value_request(self, node_id, fs, sample_rate):
         self._update_time_difference()
-        self._compose_and_send_value_request(node_id)
+        self._compose_and_send_value_request(node_id, fs, sample_rate)
 
     def send_value_unrequest(self, node_id):
         self._update_time_difference()
-        self._compose_and_send_value_request(node_id, True)
+        self._compose_and_send_value_request(node_id, 1, 0, True)
 
     def send_value(self, variant):
         self._update_time_difference()
@@ -677,12 +684,13 @@ class Connection:
             data.structure_request.append(node_id)
         self._ws.send(data.SerializeToString())
 
-    def _compose_and_send_value_request(self, node_id, stop=False):
+    def _compose_and_send_value_request(self, node_id, fs, sample_rate, stop=False):
         data = proto.Container()
         data.message_type = proto.Container.eGetterRequest
         value = proto.ValueRequest()
         value.node_id = node_id
-        value.fs = 5
+        value.fs = fs
+        value.sample_rate = sample_rate
         if stop:
             value.stop = stop
         data.getter_request.extend([value])

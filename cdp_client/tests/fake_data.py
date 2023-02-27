@@ -101,12 +101,13 @@ def create_error_response():
     return response
 
 
-def create_value_request(node_id):
+def create_value_request(node_id, fs, sample_rate):
     request = proto.Container()
     request.message_type = proto.Container.eGetterRequest
     value = proto.ValueRequest()
     value.node_id = node_id
-    value.fs = 5
+    value.fs = fs
+    value.sample_rate = sample_rate
     request.getter_request.extend([value])
     return request
 
@@ -116,7 +117,8 @@ def create_value_unrequest(node_id):
     request.message_type = proto.Container.eGetterRequest
     value = proto.ValueRequest()
     value.node_id = node_id
-    value.fs = 5
+    value.fs = 1
+    value.sample_rate = 0
     value.stop = True
     request.getter_request.extend([value])
     return request
