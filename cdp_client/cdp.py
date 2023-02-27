@@ -690,7 +690,8 @@ class Connection:
         value = proto.ValueRequest()
         value.node_id = node_id
         value.fs = fs
-        value.sample_rate = sample_rate
+        if sample_rate is not 0:
+            value.sample_rate = sample_rate
         if stop:
             value.stop = stop
         data.getter_request.extend([value])
