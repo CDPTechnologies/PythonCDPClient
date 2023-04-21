@@ -253,6 +253,11 @@ class Node:
     def _send_value_request(self):
         max_fs = max(self._value_subscriptions, key=lambda e: e[1])[1]
         max_sample_rate = max(self._value_subscriptions, key=lambda e: e[2])[2]
+        #by studio api protocol 0 is the highest sample rate (all samples), so override maxSampleRate if 0 is found
+        for s in self._value_subscriptions:
+            if s[2] == 0:
+                max_sample_rate = 0
+                break
         self._connection.send_value_request(self._id(), max_fs, max_sample_rate)
 
     def _update_structure(self, structure):
