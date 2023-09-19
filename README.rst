@@ -192,6 +192,13 @@ node.type()
 
     The type of the Node object returned as one of the cdp.NodeType values.
 
+node.class_name()
+^^^^^^^^^^^^^^^^^
+
+- Returns
+
+    CDP class name as a string.
+
 node.last_value()
 ^^^^^^^^^^^^^^^^^
 

@@ -187,6 +187,9 @@ class Node:
     def type(self):
         return self._translate_type(self._structure.info.node_type)
 
+    def class_name(self):
+        return self._structure.info.type_name
+
     def is_read_only(self):
         return self._structure.info.flags & proto.Info.eValueIsReadOnly != 0
 
