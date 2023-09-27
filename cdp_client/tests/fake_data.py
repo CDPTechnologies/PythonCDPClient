@@ -118,7 +118,6 @@ def create_value_unrequest(node_id):
     value = proto.ValueRequest()
     value.node_id = node_id
     value.fs = 1
-    value.sample_rate = 0
     value.stop = True
     request.getter_request.extend([value])
     return request
