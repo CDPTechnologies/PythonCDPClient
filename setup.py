@@ -15,7 +15,7 @@ setup(
     install_requires=[
         'promise==2.2.1',
         'websocket-client==0.56.0',
-        'protobuf==3.7.1',
+        'protobuf==3.18.3',
         'mock==3.0.5'],
     keywords=["cdp cdpstudio studio client cdp-client cdp_client"],
     url='https://github.com/CDPTechnologies/PythonCDPClient',
