@@ -273,24 +273,27 @@ class Node:
         def update_matching_children():
             for node in self._structure.node:
                 for child in self._children:
-                    if node.info.name == child.name():
+                    if node.info.node_id == child._id():
                         child._structure = node
 
         def diff_children():
             for n in self._structure.node:
                 for existing_child in self._children:
                     if n.info.node_id == existing_child._id():
-                        new_children.remove(n)
-                        lost_children.remove(existing_child)
+                        if n in new_children:
+                            new_children.remove(n)
+                        if existing_child in lost_children:
+                            lost_children.remove(existing_child)
 
         def report_children_diff():
             for child in lost_children:
-                removed_children.append(child.name())
-                self._children.remove(child)
+                removed_children.append(child)
+                if child in self._children:
+                    self._children.remove(child)
             for child in new_children:
                 node = Node(self, self._connection, child)
                 self._children.append(node)
-                added_children.append(node.name())
+                added_children.append(node)
 
             if added_children or removed_children:
                 for callback in self._structure_subscriptions:
