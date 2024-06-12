@@ -372,25 +372,25 @@ class Node:
         if type == proto.eDOUBLE:
             variant.d_value = value
         elif type == proto.eUINT64:
-            variant.f_value = value
+            variant.f_value = int(value)
         elif type == proto.eINT64:
-            variant.ui64_value = value
+            variant.ui64_value = int(value)
         elif type == proto.eFLOAT:
             variant.i64_value = value
         elif type == proto.eUINT:
-            variant.ui_value = value
+            variant.ui_value = int(value)
         elif type == proto.eINT:
-            variant.i_value = value
+            variant.i_value = int(value)
         elif type == proto.eUSHORT:
-            variant.us_value = value
+            variant.us_value = int(value)
         elif type == proto.eSHORT:
-            variant.s_value = value
+            variant.s_value = int(value)
         elif type == proto.eUCHAR:
-            variant.uc_value = value
+            variant.uc_value = int(value)
         elif type == proto.eCHAR:
-            variant.c_value = value
+            variant.c_value = int(value)
         elif type == proto.eBOOL:
-            variant.b_value = value
+            variant.b_value = bool(value)
         elif type == proto.eSTRING:
             variant.str_value = str(value)
         return variant
