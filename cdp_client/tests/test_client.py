@@ -23,7 +23,7 @@ class ClientTester(unittest.TestCase):
         mock_root_node.return_value = Promise(lambda resolve, reject: resolve(cdp.Node(None, self._client._connection, fake_data.system_node)))
         self._client.root_node().then(lambda node: nodes.append(node))
         mock_root_node.assert_called_once_with()
-        self.assertEquals(nodes[0]._id(), fake_data.system_node.info.node_id)
+        self.assertEqual(nodes[0]._id(), fake_data.system_node.info.node_id)
 
     @mock.patch.object(cdp.NodeTree, 'root_node')
     @mock.patch.object(cdp.Node, 'child')
@@ -38,7 +38,7 @@ class ClientTester(unittest.TestCase):
                                   Promise(lambda resolve, reject: resolve(cdp.Node(None, self._client._connection, fake_data.value1_node)))]
         path = '.'.join([app_node.info.name, comp_node.info.name, fake_data.value1_node.info.name])
         self._client.find_node(path).then(lambda node: nodes.append(node))
-        self.assertEquals(nodes[0]._id(), fake_data.value1_node.info.node_id)
+        self.assertEqual(nodes[0]._id(), fake_data.value1_node.info.node_id)
 
     @mock.patch.object(cdp.Connection, 'run_event_loop')
     def test_run_event_loop(self, mock_run_event_loop):

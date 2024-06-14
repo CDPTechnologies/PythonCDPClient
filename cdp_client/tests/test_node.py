@@ -35,7 +35,7 @@ class NodeTester(unittest.TestCase):
     def test_value(self):
         node = cdp.Node(None, self._connection, data.value1_node)
         node._update_value(data.value1)
-        self.assertEquals(node.last_value(), data.value1.d_value)
+        self.assertEqual(node.last_value(), data.value1.d_value)
 
     @mock.patch.object(cdp.Connection, 'send_value')
     def test_value_setter(self, mock_send_value):
@@ -79,7 +79,7 @@ class NodeTester(unittest.TestCase):
         mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(data.app2_node))
         node.children().then(lambda n: children.extend(n))
         mock_send_structure_request.assert_called_once_with(data.app2_node.info.node_id, node.path() + '.' + data.app2_node.info.name)
-        self.assertEquals(len(children), len(self._root_node.node))
+        self.assertEqual(len(children), len(self._root_node.node))
 
     @mock.patch.object(cdp.Connection, 'send_structure_request')
     def test_children_iterator(self, mock_send_structure_request):
@@ -88,7 +88,7 @@ class NodeTester(unittest.TestCase):
         mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(data.app2_node))
         node.for_each_child(lambda n: children.append(n))
         mock_send_structure_request.assert_called_once_with(data.app2_node.info.node_id, node.path() + '.' + data.app2_node.info.name)
-        self.assertEquals(len(children), len(self._root_node.node))
+        self.assertEqual(len(children), len(self._root_node.node))
 
     @mock.patch.object(cdp.Connection, 'send_structure_request')
     def test_structure_subscription(self, mock_send_structure_request):
@@ -105,7 +105,7 @@ class NodeTester(unittest.TestCase):
         mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(data.app2_node))
         node.children().then(lambda n: old_children.extend(n))
 
-        #change the structure - remove and add a node
+        # change the structure - remove and add a node
         node_to_remove = self._root_node.node[0]
         node_to_add = data.app3_node
         self._root_node.node.remove(node_to_remove)
@@ -113,14 +113,14 @@ class NodeTester(unittest.TestCase):
         mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(self._root_node))
         node._update()
 
-        #verify
+        # verify
         mock_send_structure_request.return_value = Promise(lambda resolve, reject: resolve(node_to_add))
         node.children().then(lambda n: new_children.extend(n))
-        self.assertEquals(len(old_children), len(new_children))
+        self.assertEqual(len(old_children), len(new_children))
         found = False
         for child in new_children:
-            self.assertFalse(child.name() == nodes_removed[0])
-            if child.name() == nodes_added[0]:
+            self.assertFalse(child.name() == nodes_removed[0].name())
+            if child.name() == nodes_added[0].name():
                 found = True
         self.assertTrue(found)
 
@@ -141,8 +141,8 @@ class NodeTester(unittest.TestCase):
         node._update_structure(self._root_node)
 
         # verify
-        self.assertEquals(nodes_added, [])
-        self.assertEquals(nodes_removed, [])
+        self.assertEqual(nodes_added, [])
+        self.assertEqual(nodes_removed, [])
 
     @mock.patch.object(cdp.Connection, 'send_value_request')
     def test_value_subscription(self, mock_send_value_request):
@@ -159,11 +159,11 @@ class NodeTester(unittest.TestCase):
         for value in expected_values:
             node._update_value(value)
 
-        self.assertEquals(len(actual_values), len(expected_values))
-        self.assertEquals(len(timestamps), len(expected_values))
+        self.assertEqual(len(actual_values), len(expected_values))
+        self.assertEqual(len(timestamps), len(expected_values))
         for index, value in enumerate(expected_values):
-            self.assertEquals(actual_values[index], value.d_value)
-            self.assertEquals(timestamps[index], value.timestamp)
+            self.assertEqual(actual_values[index], value.d_value)
+            self.assertEqual(timestamps[index], value.timestamp)
     
     @mock.patch.object(cdp.Connection, 'send_value_request')
     def test_value_subscription_max_fs(self, mock_send_value_request):
@@ -214,7 +214,7 @@ class NodeTester(unittest.TestCase):
         node.unsubscribe_from_value_changes(on_change)
         mock_send_value_unrequest.assert_called_once_with(node._id())
         node._update_value(data.value1)
-        self.assertEquals(len(values), 0)
+        self.assertEqual(len(values), 0)
 
     @mock.patch.object(cdp.Connection, 'send_value_request')
     def test_value_unsubscription_max_fs(self, mock_send_value_request):

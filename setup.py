@@ -10,13 +10,13 @@ def readme():
 
 setup(
     name='cdp-client',
-    version='2.1.1',
+    version='2.2.0',
     packages=find_packages(),
     install_requires=[
-        'promise==2.2.1',
-        'websocket-client==0.56.0',
-        'protobuf==3.7.1',
-        'mock==3.0.5'],
+        'promise',
+        'websocket-client',
+        'protobuf',
+        'mock'],
     keywords=["cdp cdpstudio studio client cdp-client cdp_client"],
     url='https://github.com/CDPTechnologies/PythonCDPClient',
     license='MIT',
@@ -39,5 +39,9 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6']
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10']
 )
