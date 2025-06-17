@@ -226,3 +226,47 @@ def create_auth_response_expired_error(challenge):
     response.error.text = "Session expired"
     response.error.challenge = challenge
     return response
+
+
+event_info1 = proto.EventInfo()
+event_info1.node_id.append(1)
+event_info1.id = 12345
+event_info1.sender = "App1.Comp1"
+event_info1.code = 1001
+event_info1.timestamp = 1234567890
+data_item1 = event_info1.data.add()
+data_item1.name = "temperature"
+data_item1.value = "25.5"
+data_item2 = event_info1.data.add()
+data_item2.name = "status"
+data_item2.value = "OK"
+
+event_info2 = proto.EventInfo()
+event_info2.node_id.append(1)
+event_info2.id = 67890
+event_info2.sender = "App2.Comp2"
+event_info2.code = 2001
+event_info2.timestamp = 1234567900
+
+def create_event_request(node_id):
+    request = proto.Container()
+    request.message_type = proto.Container.eEventRequest
+    event_req = request.event_request.add()
+    event_req.node_id = node_id
+    event_req.stop = False
+    return request
+
+def create_event_unrequest(node_id):
+    request = proto.Container()
+    request.message_type = proto.Container.eEventRequest
+    event_req = request.event_request.add()
+    event_req.node_id = node_id
+    event_req.stop = True
+    return request
+
+def create_event_response(event_info):
+    response = proto.Container()
+    response.message_type = proto.Container.eEventResponse
+    event_resp = response.event_response.add()
+    event_resp.CopyFrom(event_info)
+    return response

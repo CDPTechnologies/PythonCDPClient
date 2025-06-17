@@ -10,12 +10,12 @@ def readme():
 
 setup(
     name='cdp-client',
-    version='2.2.2',
+    version='2.3.0',
     packages=find_packages(),
     install_requires=[
         'promise',
-        'websocket-client<=0.56.0',
-        'protobuf<=3.20.0',
+        'websocket-client',
+        'protobuf',
         'mock'],
     keywords=["cdp cdpstudio studio client cdp-client cdp_client"],
     url='https://github.com/CDPTechnologies/PythonCDPClient',
@@ -24,8 +24,6 @@ setup(
     author_email='info@cdptech.com',
     description='Provides an API that allows to interact with CDP applications',
     long_description=readme(),
-    test_suite='nose.collector',
-    tests_require=['nose'],
     include_package_data=True,
     python_requires=">=3.8",
     classifiers=[
@@ -39,5 +37,6 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11']
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12']
 )

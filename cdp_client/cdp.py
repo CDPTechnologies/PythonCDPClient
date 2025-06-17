@@ -161,6 +161,7 @@ class Node:
         self._children = []
         self._structure_subscriptions = []
         self._value_subscriptions = []
+        self._event_subscriptions = []
         self._value = proto.VariantValue()
         self._parent = parent
         for child in self._structure.node:
@@ -235,6 +236,27 @@ class Node:
         else:
             self._connection.send_value_unrequest(self._id())
 
+    def subscribe_to_events(self, callback, starting_from=None):
+        """Starts listening to events from this node and its children.
+
+        Args:
+            callback: Function(event_info) to call when events are received
+            starting_from: Optional timestamp to start receiving events from (nanoseconds since Epoch)
+        """
+        self._event_subscriptions.append(callback)
+        self._connection.send_event_request(self._id(), starting_from)
+
+    def unsubscribe_from_events(self, callback):
+        """Stops listening to previously subscribed events.
+
+        Args:
+            callback: Function(event_info) that was previously subscribed
+        """
+        if callback in self._event_subscriptions:
+            self._event_subscriptions.remove(callback)
+            if not self._event_subscriptions:
+                self._connection.send_event_unrequest(self._id())
+
     def _id(self):
         return self._structure.info.node_id
 
@@ -307,6 +329,10 @@ class Node:
         self._value = self._value_from_variant(self._structure.info.value_type, variant)
         for callback, fs, sample_rate in self._value_subscriptions:
             callback(self._value, variant.timestamp + self._connection.server_time_difference() * nanoseconds_in_second)
+
+    def _update_event(self, event_info):
+        for callback in self._event_subscriptions:
+            callback(event_info)
 
     @staticmethod
     def _translate_type(node_type):
@@ -446,6 +472,14 @@ class Connection:
         self._update_time_difference()
         self._compose_and_send_value(variant)
 
+    def send_event_request(self, node_id, starting_from=None):
+        self._update_time_difference()
+        self._compose_and_send_event_request(node_id, starting_from)
+
+    def send_event_unrequest(self, node_id):
+        self._update_time_difference()
+        self._compose_and_send_event_request(node_id, None, True)
+
     def run_event_loop(self):
         self._ws.run_forever(sslopt=self._encryption_parameters)
         while self._auto_reconnect:
@@ -468,16 +502,16 @@ class Connection:
                                       on_close=self._on_close,
                                       on_open=self._on_open)
 
-    def _on_error(self, error):
+    def _on_error(self, ws, error):
         if not self._auto_reconnect:
             self._cleanup_queued_requests(ConnectionError(error))
 
-    def _on_close(self):
+    def _on_close(self, ws, close_status_code=None, close_msg=None):
         self._is_connected = False
         if not self._auto_reconnect:
             self._cleanup_queued_requests(ConnectionError("Connection was closed"))
 
-    def _on_open(self):
+    def _on_open(self, ws):
         pass
 
     def _fetch_time_difference(self):
@@ -545,7 +579,10 @@ class Connection:
         self._ws.on_message = self._handle_container_message
         self._update_time_difference().then(self._node_tree.update()).then(self._send_queued_requests())
 
-    def _handle_auth_response(self, message):
+    def _handle_auth_response(self, ws=None, message=None):
+        if message is None:
+            message = ws
+            ws = None
         data = proto.AuthResponse()
         data.ParseFromString(message)
         if data.result_code in (data.eGranted, data.eGrantedPasswordWillExpireSoon):
@@ -569,7 +606,10 @@ class Connection:
         self._credentials = credentials
         self._compose_and_send_re_auth_request()
 
-    def _handle_hello_message(self, message):
+    def _handle_hello_message(self, ws=None, message=None):
+        if message is None:
+            message = ws
+            ws = None
         if self._parse_hello_message(message):
             request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
                                   application_name=self._application_name, cdp_version=self._cdp_version,
@@ -600,7 +640,10 @@ class Connection:
             self._re_auth_request.then(self._re_authenticate)
             self._notification_listener.credentials_requested(self._re_auth_request)
 
-    def _handle_container_message(self, message):
+    def _handle_container_message(self, ws=None, message=None):
+        if message is None:
+            message = ws
+            ws = None
         data = proto.Container()
         data.ParseFromString(message)
         if data.message_type == proto.Container.eStructureResponse:
@@ -613,6 +656,8 @@ class Connection:
             self._parse_current_time_response(data.current_time_response)
         elif data.message_type == proto.Container.eReauthResponse:
             self._parse_re_auth_response(data.re_auth_response)
+        elif data.message_type == proto.Container.eEventResponse:
+            self._parse_event_response(data.event_response)
         elif data.message_type == proto.Container.eRemoteError:
             self._parse_error_response(data.error)
         else:
@@ -631,6 +676,13 @@ class Connection:
 
     def _parse_current_time_response(self, response):
         self._time_request.do_resolve(response)
+
+    def _parse_event_response(self, response):
+        for event_info in response:
+            for node_id in event_info.node_id:
+                node = self._node_tree.find_by_id(node_id)
+                if node is not None:
+                    node._update_event(event_info)
 
     def _parse_re_auth_response(self, response):
         if response.result_code not in (response.eGranted, response.eGrantedPasswordWillExpireSoon):
@@ -717,6 +769,18 @@ class Connection:
     def _compose_and_send_time_request(self):
         data = proto.Container()
         data.message_type = proto.Container.eCurrentTimeRequest
+        self._ws.send(data.SerializeToString())
+
+    def _compose_and_send_event_request(self, node_id, starting_from=None, stop=False):
+        data = proto.Container()
+        data.message_type = proto.Container.eEventRequest
+        event_request = proto.EventRequest()
+        event_request.node_id = node_id
+        if starting_from is not None:
+            event_request.starting_from = starting_from
+        if stop:
+            event_request.stop = stop
+        data.event_request.extend([event_request])
         self._ws.send(data.SerializeToString())
 
     def _compose_auth_request(self, request):
