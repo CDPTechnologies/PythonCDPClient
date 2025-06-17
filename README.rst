@@ -3,7 +3,7 @@ CDP-Client
 
 A simple python interface for the CDP Studio development platform that allows Python scripts to interact with CDP Applications - retrieve CDP Application structures and read-write object values. For more information about CDP Studio see https://cdpstudio.com/
 
-The API makes heavy use of promise library for asynchronous operations. For more information see https://pypi.python.org/pypi/promise
+The API makes heavy use of promise library for asynchronous operations. For more information see https://pypi.org/project/promise/
 
 Installation
 ------------
@@ -29,6 +29,26 @@ The example below shows how you subscribe to CDP signal value changes.
 	
     client = cdp.Client(host='127.0.0.1')
     client.find_node('AppName.ComponentName.SignalName').then(subscribe_to_value_changes)
+    client.run_event_loop()
+
+The example below shows how you subscribe to CDP events.
+
+.. code:: python
+
+    from cdp_client import cdp
+
+    def on_event_received(event_info):
+        print(f"Event {event_info.id} from {event_info.sender}")
+        print(f"Code: {event_info.code}, Timestamp: {event_info.timestamp}")
+        if event_info.data:
+            for data_item in event_info.data:
+                print(f"  {data_item.name}: {data_item.value}")
+	
+    def subscribe_to_events(node):
+        node.subscribe_to_events(on_event_received)
+	
+    client = cdp.Client(host='127.0.0.1')
+    client.root_node().then(subscribe_to_events)
     client.run_event_loop()
 
 API
@@ -112,7 +132,7 @@ Client(host, port, auto_reconnect, notification_listener, encryption_parameters)
                             encryption_parameters={'use_encryption': True,
                                                    'cert_reqs': ssl.CERT_REQUIRED,
                                                    'ca_certs': 'StudioAPI.crt',
-                                                   'check_hostname': False},
+                                                   'check_hostname': False})
 
 Instance Methods / Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -360,6 +380,48 @@ Stops listening previously subscribed value changes
 	
         node.unsubscribe_from_value_changes(on_change)
 
+node.subscribe_to_events(callback, starting_from=None)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Starts listening to events from this node and its children, passing event information to the provided callback function
+
+- Arguments
+
+    callback - Function(event_info) where event_info contains id, sender, code, timestamp, and optional data fields
+
+    starting_from - Optional timestamp to start receiving events from (in nanoseconds since Epoch). Defaults to None for current events.
+
+- Usage
+
+    .. code:: python
+
+        def on_event(event_info):
+            print(f"Event {event_info.id} from {event_info.sender}")
+            print(f"Code: {event_info.code}, Timestamp: {event_info.timestamp}")
+            if event_info.data:
+                for data_item in event_info.data:
+                    print(f"  {data_item.name}: {data_item.value}")
+
+        node.subscribe_to_events(on_event)
+
+node.unsubscribe_from_events(callback)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Stops listening to previously subscribed events
+
+- Arguments
+
+    callback - Function(event_info) that was previously subscribed
+
+- Usage
+
+    .. code:: python
+
+        def on_event(event_info):
+            print(f"Event received: {event_info.id}")
+
+        node.unsubscribe_from_events(on_event)
+
 Notification Listener
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -432,7 +494,7 @@ To run the test suite execute the following command in package root folder:
 
 .. code:: sh
 
-    $ python setup.py test
+    $ python -m unittest discover cdp_client.tests -v
 
 License
 -------

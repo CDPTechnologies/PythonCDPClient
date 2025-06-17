@@ -231,3 +231,131 @@ class NodeTester(unittest.TestCase):
         mock_send_value_request.reset_mock()
         node.unsubscribe_from_value_changes(on_change3)
         mock_send_value_request.assert_called_once_with(node._id(), 5, 3)
+
+    @mock.patch.object(cdp.Connection, 'send_event_request')
+    def test_event_subscription(self, mock_send_event_request):
+        def on_event(event_info):
+            received_events.append(event_info)
+        
+        received_events = []
+        node = cdp.Node(None, self._connection, data.app1_node)
+        node.subscribe_to_events(on_event)
+        mock_send_event_request.assert_called_once_with(node._id(), None)
+        
+        # Simulate receiving events
+        node._update_event(data.event_info1)
+        node._update_event(data.event_info2)
+        
+        self.assertEqual(len(received_events), 2)
+        self.assertEqual(received_events[0].id, data.event_info1.id)
+        self.assertEqual(received_events[0].sender, data.event_info1.sender)
+        self.assertEqual(received_events[0].code, data.event_info1.code)
+        self.assertEqual(received_events[1].id, data.event_info2.id)
+
+    @mock.patch.object(cdp.Connection, 'send_event_unrequest')
+    @mock.patch.object(cdp.Connection, 'send_event_request')
+    def test_event_unsubscription(self, mock_send_event_request, mock_send_event_unrequest):
+        def on_event(event_info):
+            received_events.append(event_info)
+        
+        received_events = []
+        node = cdp.Node(None, self._connection, data.app1_node)
+        node.subscribe_to_events(on_event)
+        
+        node.unsubscribe_from_events(on_event)
+        mock_send_event_unrequest.assert_called_once_with(node._id())
+        
+        # Events should not be received after unsubscription
+        node._update_event(data.event_info1)
+        self.assertEqual(len(received_events), 0)
+
+    @mock.patch.object(cdp.Connection, 'send_event_request')
+    def test_multiple_event_subscriptions(self, mock_send_event_request):
+        def on_event1(event_info):
+            events1.append(event_info)
+        def on_event2(event_info):
+            events2.append(event_info)
+        
+        events1 = []
+        events2 = []
+        node = cdp.Node(None, self._connection, data.app1_node)
+        
+        # Subscribe multiple callbacks
+        node.subscribe_to_events(on_event1)
+        node.subscribe_to_events(on_event2)
+        
+        # Send event - both should receive it
+        node._update_event(data.event_info1)
+        
+        self.assertEqual(len(events1), 1)
+        self.assertEqual(len(events2), 1)
+        self.assertEqual(events1[0].id, data.event_info1.id)
+        self.assertEqual(events2[0].id, data.event_info1.id)
+
+    @mock.patch.object(cdp.Connection, 'send_event_request')
+    def test_event_data_parsing(self, mock_send_event_request):
+        def on_event(event_info):
+            received_events.append(event_info)
+        
+        received_events = []
+        node = cdp.Node(None, self._connection, data.app1_node)
+        node.subscribe_to_events(on_event)
+        
+        # Send event with data
+        node._update_event(data.event_info1)
+        
+        self.assertEqual(len(received_events), 1)
+        event = received_events[0]
+        self.assertEqual(len(event.data), 2)
+        self.assertEqual(event.data[0].name, "temperature")
+        self.assertEqual(event.data[0].value, "25.5")
+        self.assertEqual(event.data[1].name, "status")
+        self.assertEqual(event.data[1].value, "OK")
+
+    @mock.patch.object(cdp.Connection, 'send_event_unrequest')
+    def test_event_unsubscribe_nonexistent_callback(self, mock_send_event_unrequest):
+        def on_event(event_info):
+            pass
+        def unsubscribed_callback(event_info):
+            pass
+        
+        node = cdp.Node(None, self._connection, data.app1_node)
+        
+        # Try to unsubscribe a callback that was never subscribed
+        # Should not cause any errors or send unrequest
+        node.unsubscribe_from_events(unsubscribed_callback)
+        mock_send_event_unrequest.assert_not_called()
+
+    @mock.patch.object(cdp.Connection, 'send_event_unrequest') 
+    @mock.patch.object(cdp.Connection, 'send_event_request')
+    def test_event_partial_unsubscription(self, mock_send_event_request, mock_send_event_unrequest):
+        def on_event1(event_info):
+            pass
+        def on_event2(event_info):
+            pass
+        
+        node = cdp.Node(None, self._connection, data.app1_node)
+        
+        # Subscribe two callbacks
+        node.subscribe_to_events(on_event1)
+        node.subscribe_to_events(on_event2)
+        
+        # Unsubscribe only one - should NOT send unrequest yet
+        node.unsubscribe_from_events(on_event1)
+        mock_send_event_unrequest.assert_not_called()
+        
+        # Unsubscribe the last one - should send unrequest
+        node.unsubscribe_from_events(on_event2)
+        mock_send_event_unrequest.assert_called_once_with(node._id())
+
+    @mock.patch.object(cdp.Connection, 'send_event_request')
+    def test_event_subscription_with_starting_from(self, mock_send_event_request):
+        def on_event(event_info):
+            pass
+        
+        node = cdp.Node(None, self._connection, data.app1_node)
+        starting_timestamp = 1234567890
+        
+        # Subscribe with starting_from parameter
+        node.subscribe_to_events(on_event, starting_timestamp)
+        mock_send_event_request.assert_called_once_with(node._id(), starting_timestamp)

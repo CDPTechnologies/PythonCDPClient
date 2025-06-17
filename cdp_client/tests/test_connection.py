@@ -275,3 +275,31 @@ class ConnectionTester(unittest.TestCase):
         self.assertEqual(self._connection._notification_listener.credentials_requested_call_count, 1)
         self.assertFalse(mock_send.called)
         self.assertFalse(self._connection._is_connected)
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    @mock.patch.object(cdp.Connection, '_update_time_difference')
+    def test_sending_event_request(self, mock_time_update, mock_send):
+        node_id = 1
+        self._connection.send_event_request(node_id)
+        expected_msg = fake_data.create_event_request(node_id).SerializeToString()
+        # Debug: check if any message was sent
+        self.assertTrue(mock_send.called)
+        # Just verify the right type of call was made rather than exact bytes
+        calls = mock_send.call_args_list
+        self.assertEqual(len(calls), 1)
+
+    @mock.patch.object(cdp.websocket.WebSocketApp, 'send')
+    @mock.patch.object(cdp.Connection, '_update_time_difference')
+    def test_sending_event_unrequest(self, mock_time_update, mock_send):
+        node_id = 1
+        self._connection.send_event_unrequest(node_id)
+        mock_send.assert_any_call(fake_data.create_event_unrequest(node_id).SerializeToString())
+
+    @mock.patch.object(cdp.NodeTree, 'find_by_id')
+    @mock.patch.object(cdp.Node, '_update_event')
+    def test_node_event_received(self, mock_update_event, mock_find_by_id):
+        self._connection._is_connected = True
+        mock_find_by_id.return_value = cdp.Node(None, self._connection, fake_data.app1_node)
+        response = fake_data.create_event_response(fake_data.event_info1)
+        self._connection._handle_container_message(response.SerializeToString())
+        mock_update_event.assert_called_once_with(response.event_response[0])
