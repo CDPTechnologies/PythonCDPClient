@@ -43,13 +43,50 @@ The example below shows how you subscribe to CDP events.
         if event_info.data:
             for data_item in event_info.data:
                 print(f"  {data_item.name}: {data_item.value}")
-	
+
     def subscribe_to_events(node):
         node.subscribe_to_events(on_event_received)
-	
+
     client = cdp.Client(host='127.0.0.1')
     client.root_node().then(subscribe_to_events)
     client.run_event_loop()
+
+Multi-Application Support
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When connected to CDP 5.1 or later, the client can access all applications in a CDP system through a single connection. The client connects to one application and reaches the others through the server's proxy protocol — no additional ports or connections needed.
+
+Subscribe to ``sibling_changes`` to react when sibling applications appear, disappear or come back. ``find_node()`` can then address nodes in any application that is currently reachable:
+
+.. code:: python
+
+    import threading
+    from cdp_client import cdp
+
+    def on_value_changed(value, timestamp):
+        print(value)
+
+    def subscribe(node):
+        node.subscribe_to_value_changes(on_value_changed)
+
+    def on_sibling_change(app_name, event):
+        if event == cdp.SiblingEvent.CONNECTED:
+            print('Sibling connected:', app_name)
+            client.find_node(app_name + '.ComponentName.SignalName').then(subscribe)
+        elif event == cdp.SiblingEvent.DISCONNECTED:
+            print('Sibling disconnected:', app_name)
+        elif event == cdp.SiblingEvent.RECONNECTED:
+            print('Sibling reconnected:', app_name)
+            client.find_node(app_name + '.ComponentName.SignalName').then(subscribe)
+
+    client = cdp.Client(host='127.0.0.1')
+    client.subscribe_to_sibling_changes(on_sibling_change)
+    threading.Thread(target=client.run_event_loop, daemon=True).start()
+    client.root_node()  # Triggers connection and sibling discovery
+
+After a primary connection drop, ``DISCONNECTED`` is delivered for every previously reachable sibling and ``RECONNECTED`` is delivered as each sibling becomes reachable again. Previously returned ``Node`` objects from sibling applications stay valid across the drop and their value subscriptions are automatically re-issued to the server when the sibling reconnects.
+
+When connected to CDP versions before 5.1, ``find_node()`` is limited to the connected application and ``sibling_changes`` events are never fired.
 
 API
 ---
@@ -155,11 +192,11 @@ Gets the application Node object of the connected application.
 client.find_node(path)
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Searches for the node specified by full dot separated path. **The requested node must reside in the application client was connected to. Root node is not considered part of the path.**
+Searches for the node specified by full dot separated path. When connected to CDP 5.1 or later with proxy connections established, the path can address nodes in any application in the system. Otherwise, the requested node must reside in the connected application. Root node is not considered part of the path.
 
 - Arguments
 
-    path - Dot separated string to target node
+    path - Dot separated string to target node (e.g. 'AppName.ComponentName.SignalName')
 
 - Returns
 
@@ -175,6 +212,38 @@ client.run_event_loop()
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Runs the event loop that serves network communication layer for incoming/outgoing data. **This is a blocking call that must be run for any communication to happen.** The method can be cancelled by calling disconnect.
+
+client.subscribe_to_sibling_changes(callback)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Starts listening to sibling application lifecycle events when connected to CDP 5.1 or later. The callback receives an application name and one of the ``cdp.SiblingEvent`` values.
+
+- Arguments
+
+    callback - Function(app_name, event) where event is ``cdp.SiblingEvent.CONNECTED``, ``cdp.SiblingEvent.DISCONNECTED`` or ``cdp.SiblingEvent.RECONNECTED``.
+
+- Usage
+
+    .. code:: python
+
+        def on_sibling_change(app_name, event):
+            if event == cdp.SiblingEvent.CONNECTED:
+                print('Sibling connected:', app_name)
+            elif event == cdp.SiblingEvent.DISCONNECTED:
+                print('Sibling disconnected:', app_name)
+            elif event == cdp.SiblingEvent.RECONNECTED:
+                print('Sibling reconnected:', app_name)
+
+        client.subscribe_to_sibling_changes(on_sibling_change)
+
+client.unsubscribe_from_sibling_changes(callback)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Stops listening to sibling application lifecycle events.
+
+- Arguments
+
+    callback - Function(app_name, event) that was previously subscribed.
 
 client.disconnect()
 ^^^^^^^^^^^^^^^^^^^

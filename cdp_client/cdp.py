@@ -5,6 +5,7 @@ from hashlib import sha256
 import cdp_client.cdp_pb2 as proto
 import websocket
 import logging
+import threading
 import time
 
 nanoseconds_in_second = 1000000000.0
@@ -46,6 +47,13 @@ class NotFoundError(Exception):
 
 class UnknownError(Exception):
     pass
+
+
+SiblingEvent = enum(
+    CONNECTED=1,    # sibling app reachable for the first time in this session
+    DISCONNECTED=2, # sibling app went offline (transport closed or proxy handshake timed out)
+    RECONNECTED=3,  # sibling app came back after a previous DISCONNECTED
+)
 
 
 AuthResultCode = enum(
@@ -151,7 +159,24 @@ class Client:
             return node.child(tokens[0]).then(scan_node)
 
         tokens = path.split('.')
-        return self.root_node().then(scan_node)
+        def start_scan(root):
+            if root.name() == tokens[0]:
+                return scan_node(root)
+            # Check sibling connections for the target app
+            for sibling in list(self._connection._sibling_connections.values()):
+                sibling_root = sibling._node_tree._root_node
+                if sibling_root is not None and sibling_root.name() == tokens[0]:
+                    return scan_node(sibling_root)
+            return Promise(lambda resolve, reject: reject(
+                NotFoundError("Application '" + tokens[0] + "' not found")))
+
+        return self.root_node().then(start_scan)
+
+    def subscribe_to_sibling_changes(self, callback):
+        self._connection.subscribe_to_sibling_changes(callback)
+
+    def unsubscribe_from_sibling_changes(self, callback):
+        self._connection.unsubscribe_from_sibling_changes(callback)
 
 
 class Node:
@@ -293,9 +318,15 @@ class Node:
         added_children = []
 
         def update_matching_children():
+            # Match by name (not node_id) so user-held Node references survive
+            # server restarts that reassign node_ids. After a sibling rebind
+            # or auto-reconnect to a freshly started server, existing children
+            # may have stale ids; matching by name lets us update their
+            # _structure in-place to the fresh server-assigned id without
+            # orphaning user-held references.
             for node in self._structure.node:
                 for child in self._children:
-                    if node.info.node_id == child._id():
+                    if node.info.name == child.name():
                         child._structure = node
 
         def diff_children():
@@ -422,6 +453,109 @@ class Node:
         return variant
 
 
+PROXY_MIN_COMPAT_VERSION = 4
+PROXY_CONNECT_TIMEOUT_SECONDS = 10
+
+
+class ServiceTransport:
+    """Virtual transport that tunnels through ServiceMessage on a primary connection."""
+
+    def __init__(self, primary_connection, service_id, instance_id):
+        self._primary = primary_connection
+        self._service_id = service_id
+        self._instance_id = instance_id
+        self._is_connected = False
+        self._is_closed = False
+        self._pending_sends = []
+        self._connect_timer = None
+        self.on_message = None
+        self.on_open = None
+        self.on_close = None
+        self.on_error = None
+        self.url = 'service://' + str(service_id) + ':' + str(instance_id)
+
+    def send(self, data_bytes):
+        if self._is_closed:
+            return
+        if self._is_connected:
+            self._primary.send_service_message(
+                self._service_id, self._instance_id,
+                proto.ServiceMessage.eData, data_bytes)
+        else:
+            self._pending_sends.append(data_bytes)
+
+    def close(self):
+        if self._is_closed:
+            return
+        self._cancel_connect_timer()
+        self._is_closed = True
+        self._is_connected = False
+        self._primary.send_service_message(
+            self._service_id, self._instance_id,
+            proto.ServiceMessage.eDisconnect)
+
+    def connect(self):
+        self._connect_timer = threading.Timer(PROXY_CONNECT_TIMEOUT_SECONDS, self._handle_connect_timeout)
+        self._connect_timer.daemon = True
+        self._connect_timer.start()
+        self._primary.send_service_message(
+            self._service_id, self._instance_id,
+            proto.ServiceMessage.eConnect)
+
+    def run_forever(self, **kwargs):
+        pass  # Service transports don't have their own event loop
+
+    def on_service_message(self, service_msg):
+        if service_msg.kind == proto.ServiceMessage.eConnected:
+            self._cancel_connect_timer()
+            self._is_connected = True
+            for pending in self._pending_sends:
+                self._primary.send_service_message(
+                    self._service_id, self._instance_id,
+                    proto.ServiceMessage.eData, pending)
+            self._pending_sends = []
+            if self.on_open:
+                self.on_open(self)
+        elif service_msg.kind == proto.ServiceMessage.eData:
+            if self.on_message:
+                self.on_message(self, service_msg.payload)
+        elif service_msg.kind == proto.ServiceMessage.eDisconnect:
+            self._cancel_connect_timer()
+            self._is_connected = False
+            self._is_closed = True
+            self._remove_from_primary()
+            if self.on_close:
+                self.on_close(self)
+        elif service_msg.kind == proto.ServiceMessage.eError:
+            self._cancel_connect_timer()
+            self._is_connected = False
+            self._is_closed = True
+            self._remove_from_primary()
+            if self.on_error:
+                self.on_error(self, 'Service error')
+            if self.on_close:
+                self.on_close(self)
+
+    def _cancel_connect_timer(self):
+        if self._connect_timer is not None:
+            self._connect_timer.cancel()
+            self._connect_timer = None
+
+    def _handle_connect_timeout(self):
+        if self._is_connected or self._is_closed:
+            return
+        self._is_closed = True
+        self._remove_from_primary()
+        if self.on_error:
+            self.on_error(self, 'Proxy handshake timeout')
+        if self.on_close:
+            self.on_close(self)
+
+    def _remove_from_primary(self):
+        instance_key = str(self._service_id) + ':' + str(self._instance_id)
+        self._primary._service_instances.pop(instance_key, None)
+
+
 class Connection:
     def __init__(self, host, port, auto_reconnect, notification_listener=NotificationListener(),
                  encryption_parameters=dict()):
@@ -431,6 +565,7 @@ class Connection:
         self._application_name = ''
         self._cdp_version = ''
         self._system_use_notification = None
+        self._compat_version = 0
         self._node_tree = NodeTree(self)
         self._structure_requests = Requests()
         self._time_request = Promise()
@@ -448,6 +583,63 @@ class Connection:
             protocol = 'ws://'
         self._ws = self._connect(protocol + host + ":" + str(port))
         self._re_auth_request = None
+        self._available_services = {}
+        self._service_instances = {}
+        self._instance_counters = {}
+        self._sibling_connections = {}
+        self._sibling_subscriptions = []
+        self._announced_siblings = set()
+        self._ever_seen_siblings = set()
+        self._system_node_id = None
+        self._closing = False
+
+    def _init_as_sibling(self, transport, primary_connection, addr, port):
+        self._host = addr
+        self._port = port
+        self._system_name = ''
+        self._application_name = ''
+        self._cdp_version = ''
+        self._system_use_notification = None
+        self._compat_version = 0
+        self._node_tree = NodeTree(self)
+        self._structure_requests = Requests()
+        self._time_request = Promise()
+        self._time_diff = primary_connection._time_diff
+        self._last_time_diff_update = primary_connection._last_time_diff_update
+        self._is_connected = False
+        self._auto_reconnect = False
+        self._notification_listener = primary_connection._notification_listener
+        self._encryption_parameters = {}
+        self._challenge = ''
+        self._credentials = primary_connection._credentials
+        self._re_auth_request = None
+        self._available_services = {}
+        self._service_instances = {}
+        self._instance_counters = {}
+        self._sibling_connections = {}
+        self._sibling_subscriptions = []
+        self._announced_siblings = set()
+        self._ever_seen_siblings = set()
+        self._system_node_id = None
+        self._primary_connection = primary_connection
+        self._ws = transport
+        transport.on_message = self._handle_hello_message
+        transport.on_error = self._on_error
+        transport.on_close = self._on_close
+        transport.on_open = self._on_open
+
+    def _rebind_transport(self, transport):
+        self._ws = transport
+        self._is_connected = False
+        self._challenge = ''
+        self._time_request = Promise()
+        transport.on_message = self._handle_hello_message
+        transport.on_error = self._on_error
+        transport.on_close = self._on_close
+        transport.on_open = self._on_open
+
+    def _is_sibling(self):
+        return hasattr(self, '_primary_connection') and self._primary_connection is not None
 
     def node_tree(self):
         return self._node_tree
@@ -489,11 +681,16 @@ class Connection:
 
     def close(self):
         self._auto_reconnect = False
+        self._closing = True
+        self._destroy_proxy_state()
         self._cleanup_queued_requests(ConnectionError('Connection was closed'))
         self._ws.close()
 
     def server_time_difference(self):
         return self._time_diff
+
+    def supports_proxy_protocol(self):
+        return self._compat_version >= PROXY_MIN_COMPAT_VERSION
 
     def _connect(self, url):
         return websocket.WebSocketApp(url,
@@ -507,9 +704,73 @@ class Connection:
             self._cleanup_queued_requests(ConnectionError(error))
 
     def _on_close(self, ws, close_status_code=None, close_msg=None):
+        was_connected = self._is_connected
         self._is_connected = False
+        if self._is_sibling():
+            if was_connected:
+                self._announce_sibling_disconnected()
+        elif self._auto_reconnect:
+            self._reset_proxy_transports()
+        else:
+            self._destroy_proxy_state()
         if not self._auto_reconnect:
             self._cleanup_queued_requests(ConnectionError("Connection was closed"))
+
+    def _announce_sibling_disconnected(self):
+        primary = self._primary_connection
+        name = self._application_name
+        if primary is None or not name:
+            return
+        if primary._closing:
+            return
+        if name not in primary._announced_siblings:
+            return
+        primary._announced_siblings.discard(name)
+        primary._fire_sibling_event(name, SiblingEvent.DISCONNECTED)
+
+    def _reset_proxy_transports(self):
+        for transport in list(self._service_instances.values()):
+            transport._cancel_connect_timer()
+            transport._is_closed = True
+            transport._is_connected = False
+        self._service_instances.clear()
+        self._instance_counters.clear()
+        self._available_services.clear()
+        for sibling in list(self._sibling_connections.values()):
+            sibling._is_connected = False
+            name = sibling._application_name
+            if name and name in self._announced_siblings:
+                self._announced_siblings.discard(name)
+                self._fire_sibling_event(name, SiblingEvent.DISCONNECTED)
+        self._node_tree._connecting_siblings.clear()
+
+    def _destroy_proxy_state(self):
+        for transport in list(self._service_instances.values()):
+            transport._cancel_connect_timer()
+            transport._is_closed = True
+            transport._is_connected = False
+            if transport.on_close:
+                transport.on_close(transport)
+        self._service_instances.clear()
+        self._instance_counters.clear()
+        self._available_services.clear()
+        self._sibling_connections.clear()
+        self._announced_siblings.clear()
+        self._ever_seen_siblings.clear()
+        self._node_tree._connecting_siblings.clear()
+        self._node_tree._known_siblings.clear()
+
+    def subscribe_to_sibling_changes(self, callback):
+        if callback not in self._sibling_subscriptions:
+            self._sibling_subscriptions.append(callback)
+
+    def unsubscribe_from_sibling_changes(self, callback):
+        if callback in self._sibling_subscriptions:
+            self._sibling_subscriptions.remove(callback)
+
+    def _fire_sibling_event(self, app_name, event):
+        for callback in list(self._sibling_subscriptions):
+            callback(app_name, event)
 
     def _on_open(self, ws):
         pass
@@ -577,7 +838,39 @@ class Connection:
     def _sync_time(self):
         self._is_connected = True
         self._ws.on_message = self._handle_container_message
+        is_primary_reconnect = (self._node_tree._root_node is not None
+                                and not self._is_sibling())
+        if is_primary_reconnect:
+            self._structure_requests.clear(ConnectionError('Reconnecting'))
+            try:
+                self._time_request.do_reject(ConnectionError('Reconnecting'))
+            except Exception:
+                pass
+            self._time_request = Promise()
         self._update_time_difference().then(self._node_tree.update()).then(self._send_queued_requests())
+        if self.supports_proxy_protocol() and not self._is_sibling():
+            self._send_services_request()
+
+    def _announce_sibling_connected(self):
+        primary = self._primary_connection
+        name = self._application_name
+        if primary is None or not name:
+            return
+        if name in primary._announced_siblings:
+            return
+        primary._announced_siblings.add(name)
+        if name in primary._ever_seen_siblings:
+            primary._fire_sibling_event(name, SiblingEvent.RECONNECTED)
+        else:
+            primary._ever_seen_siblings.add(name)
+            primary._fire_sibling_event(name, SiblingEvent.CONNECTED)
+
+    def _send_services_request(self):
+        data = proto.Container()
+        data.message_type = proto.Container.eServicesRequest
+        data.services_request.subscribe = True
+        data.services_request.inactivity_resend_interval = 120
+        self._ws.send(data.SerializeToString())
 
     def _handle_auth_response(self, ws=None, message=None):
         if message is None:
@@ -621,13 +914,16 @@ class Connection:
 
     def _handle_application_acceptance(self, message):
         if self._challenge:
-            request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
-                                  application_name=self._application_name, cdp_version=self._cdp_version,
-                                  system_use_notification=self._system_use_notification,
-                                  user_auth_result=UserAuthResult(code=AuthResultCode.CREDENTIALS_REQUIRED,
-                                                                  text='Credentials required'))
-            request.then(self._authenticate)
-            self._notification_listener.credentials_requested(request)
+            if self._is_sibling() and self._credentials:
+                self._authenticate(self._credentials)
+            else:
+                request = AuthRequest(host=self._host, port=self._port, system_name=self._system_name,
+                                      application_name=self._application_name, cdp_version=self._cdp_version,
+                                      system_use_notification=self._system_use_notification,
+                                      user_auth_result=UserAuthResult(code=AuthResultCode.CREDENTIALS_REQUIRED,
+                                                                      text='Credentials required'))
+                request.then(self._authenticate)
+                self._notification_listener.credentials_requested(request)
         else:
             self._sync_time()
 
@@ -660,6 +956,11 @@ class Connection:
             self._parse_event_response(data.event_response)
         elif data.message_type == proto.Container.eRemoteError:
             self._parse_error_response(data.error)
+        elif data.message_type == proto.Container.eServicesNotification:
+            self._parse_services_notification(data.services_notification)
+        elif data.message_type == proto.Container.eServiceMessage:
+            for msg in data.service_message:
+                self._route_service_message(msg)
         else:
             logging.info('Unsupported message type received')
 
@@ -669,10 +970,21 @@ class Connection:
             node._update_value(variant)
 
     def _parse_structure_change_response(self, response):
+        needs_system_refetch = False
         for node_id in response:
+            if (self._system_node_id is not None
+                    and node_id == self._system_node_id
+                    and not self._is_sibling()):
+                needs_system_refetch = True
+                continue
             node = self._node_tree.find_by_id(node_id)
             if node is not None:
                 node._update()
+        if needs_system_refetch:
+            self._refetch_system_structure()
+
+    def _refetch_system_structure(self):
+        self._node_tree._fetch_system().then(self._node_tree._get_root_node)
 
     def _parse_current_time_response(self, response):
         self._time_request.do_resolve(response)
@@ -704,6 +1016,91 @@ class Connection:
             self._cleanup_queued_requests(InvalidRequestError(error.text))
         elif error.code == proto.eUNSUPPORTED_CONTAINER_TYPE:
             self._cleanup_queued_requests(CommunicationError(error.text))
+        elif error.code == proto.eNODE_NOT_FOUND:
+            # Do NOT clear the entire queue on NODE_NOT_FOUND. This error
+            # typically means a stale node_id was sent (e.g. after a sibling
+            # restart where the new server assigned different ids). The
+            # recovering _update_recursively chain will re-send the same
+            # node_path with a fresh id and its response will resolve any
+            # pending queue entry for that path. Clearing the queue here
+            # would reject the test's still-valid find_node promise.
+            pass
+
+    def _parse_services_notification(self, notification):
+        self._available_services.clear()
+        for service in notification.services:
+            self._available_services[service.service_id] = service
+        self._node_tree.try_connect_pending_siblings()
+
+    def _route_service_message(self, service_msg):
+        instance_key = str(service_msg.service_id) + ':' + str(service_msg.instance_id)
+        transport = self._service_instances.get(instance_key)
+        if transport is not None:
+            transport.on_service_message(service_msg)
+
+    def _allocate_instance_id(self, service_id):
+        next_id = self._instance_counters.get(service_id, 0)
+        self._instance_counters[service_id] = next_id + 1
+        return next_id
+
+    def send_service_message(self, service_id, instance_id, kind, payload=None):
+        if not self._is_connected:
+            return
+        data = proto.Container()
+        data.message_type = proto.Container.eServiceMessage
+        msg = data.service_message.add()
+        msg.service_id = service_id
+        msg.instance_id = instance_id
+        msg.kind = kind
+        if payload is not None:
+            msg.payload = payload
+        self._ws.send(data.SerializeToString())
+
+    def find_proxy_service(self, addr, port):
+        port_str = str(port)
+        for service in self._available_services.values():
+            if (service.type == 'websocketproxy' and
+                service.metadata.get('proxy_type') == 'studioapi' and
+                service.metadata.get('ip_address') == addr and
+                service.metadata.get('port') == port_str):
+                return service
+        return None
+
+    def connect_via_proxy(self, addr, port):
+        transport = self._create_service_transport(addr, port)
+        if transport is None:
+            return Promise(lambda resolve, reject: reject(
+                NotFoundError("No proxy service for " + addr + ":" + str(port))))
+
+        sibling = Connection.__new__(Connection)
+        sibling._init_as_sibling(transport, self, addr, port)
+
+        sibling_key = addr + ':' + str(port)
+        self._sibling_connections[sibling_key] = sibling
+
+        transport.connect()
+        return Promise(lambda resolve, reject: resolve(sibling))
+
+    def rebind_sibling_via_proxy(self, sibling, addr, port):
+        transport = self._create_service_transport(addr, port)
+        if transport is None:
+            return Promise(lambda resolve, reject: reject(
+                NotFoundError("No proxy service for " + addr + ":" + str(port))))
+
+        sibling._rebind_transport(transport)
+        transport.connect()
+        return Promise(lambda resolve, reject: resolve(sibling))
+
+    def _create_service_transport(self, addr, port):
+        service = self.find_proxy_service(addr, port)
+        if service is None:
+            return None
+        service_id = service.service_id
+        instance_id = self._allocate_instance_id(service_id)
+        instance_key = str(service_id) + ':' + str(instance_id)
+        transport = ServiceTransport(self, service_id, instance_id)
+        self._service_instances[instance_key] = transport
+        return transport
 
     def _parse_hello_message(self, message):
         data = proto.Hello()
@@ -711,6 +1108,7 @@ class Connection:
         if data.compat_version < 1:
             logging.info('Unsupported protocol version ' + str(data.compat_version) + '.' + str(data.incremental_version))
             return False
+        self._compat_version = data.compat_version
         self._system_name = data.system_name
         self._application_name = data.application_name
         self._cdp_version = str(data.cdp_version_major) + '.' + \
@@ -731,10 +1129,18 @@ class Connection:
                     p.do_resolve(structure)
 
     def _send_queued_requests(self):
-        for request in self._structure_requests.get():
+        for request in list(self._structure_requests.get()):
             node_path = request.node_path
-            node_id = None if node_path is None else self._node_tree.find_by_path(node_path)._id()
-            self._compose_and_send_structure_request(node_id)
+            if node_path is None:
+                self._compose_and_send_structure_request(None)
+                continue
+            node = self._node_tree.find_by_path(node_path)
+            if node is None:
+                self._structure_requests.remove(node_path)
+                for p in request.promises:
+                    p.do_reject(NotFoundError("Node '" + node_path + "' no longer exists"))
+                continue
+            self._compose_and_send_structure_request(node._id())
 
     def _cleanup_queued_requests(self, error):
         self._time_request.reject(error)
@@ -811,13 +1217,28 @@ class NodeTree:
     def __init__(self, connection):
         self._connection = connection
         self._root_node = None  # starts with application node as node tree is created for each application connection
+        self._known_siblings = set()
+        self._connecting_siblings = set()
 
     def root_node(self):
         if self._root_node is None:
             return self._fetch_system() \
                 .then(self._set_root_node) \
-                .then(self._update_node)
+                .then(self._update_node) \
+                .then(self._announce_sibling_after_load) \
+                .catch(self._reset_root_on_failure)
         return Promise(lambda resolve, reject: resolve(self._root_node))
+
+    def _announce_sibling_after_load(self, node):
+        if self._connection._is_sibling():
+            self._connection._announce_sibling_connected()
+        return Promise(lambda resolve, reject: resolve(node))
+
+    def _reset_root_on_failure(self, error):
+        self._root_node = None
+        if self._connection._is_sibling():
+            self._connection._is_connected = False
+        return Promise(lambda resolve, reject: reject(error))
 
     def find_by_id(self, node_id):
         def find_node(node):
@@ -869,17 +1290,83 @@ class NodeTree:
         return node._update()
 
     def _set_root_node(self, system_structure):
-        def find_local_app(apps):
-            for app in apps:
-                if app.info.is_local:
-                    return app
-            return None
-
+        self._connection._system_node_id = system_structure.info.node_id
         if not self._root_node:
-            self._root_node = Node(None, self._connection, find_local_app(system_structure.node))
+            local_app = self._find_local_app(system_structure.node)
+            if local_app:
+                self._root_node = Node(None, self._connection, local_app)
+        if self._connection.supports_proxy_protocol() and not self._connection._is_sibling():
+            self._discover_siblings(system_structure)
+            self.try_connect_pending_siblings()
         return Promise(lambda resolve, reject: resolve(self._root_node))
 
+    def _find_local_app(self, apps):
+        for app in apps:
+            if app.info.is_local:
+                return app
+        return None
+
+    def _discover_siblings(self, system_structure):
+        self._known_siblings = set()
+        for app in system_structure.node:
+            if not app.info.is_local and app.info.server_addr and app.info.server_port:
+                key = app.info.server_addr + ':' + str(app.info.server_port)
+                self._known_siblings.add(key)
+
+    def try_connect_pending_siblings(self):
+        if not self._known_siblings:
+            return
+        for key in list(self._known_siblings):
+            if key in self._connecting_siblings:
+                continue
+            existing = self._connection._sibling_connections.get(key)
+            if existing is not None and existing._is_connected:
+                continue
+            addr, port = self._split_sibling_key(key)
+            service = self._connection.find_proxy_service(addr, port)
+            if service is None:
+                continue
+            self._connecting_siblings.add(key)
+            if existing is not None:
+                promise = self._connection.rebind_sibling_via_proxy(existing, addr, port)
+            else:
+                promise = self._connection.connect_via_proxy(addr, port)
+            promise.then(
+                lambda sibling, k=key: self._on_sibling_connected(sibling, k)
+            ).catch(
+                lambda err, k=key: self._on_sibling_connect_failed(err, k)
+            )
+
+    def _split_sibling_key(self, key):
+        addr, _, port = key.rpartition(':')
+        return addr, int(port)
+
+    def _on_sibling_connected(self, sibling_connection, key):
+        logging.info('Sibling connected: ' + key)
+        self._connecting_siblings.discard(key)
+        sibling_connection.node_tree().root_node()
+
+    def _on_sibling_connect_failed(self, err, key):
+        logging.error('Sibling connection failed for ' + key + ': ' + str(err))
+        self._connecting_siblings.discard(key)
+
     def _get_root_node(self, system_structure):
+        self._connection._system_node_id = system_structure.info.node_id
+        # On reconnect (primary auto-reconnect or sibling rebind) the new
+        # server may have assigned a different node_id to the root app. Refresh
+        # the cached root's id from the fresh system structure (matched by
+        # name) so the subsequent _update_recursively can fetch with valid ids.
+        # Children's ids are refreshed inside Node._update_structure via
+        # name-based matching.
+        if self._root_node is not None:
+            local_app = self._find_local_app(system_structure.node)
+            if local_app is not None and local_app.info.name == self._root_node.name():
+                self._root_node._structure.info.node_id = local_app.info.node_id
+        if self._connection.supports_proxy_protocol() and not self._connection._is_sibling():
+            self._discover_siblings(system_structure)
+            self.try_connect_pending_siblings()
+        if self._connection._is_sibling():
+            self._connection._announce_sibling_connected()
         return Promise(lambda resolve, reject: resolve(self._root_node))
 
     def _fetch_system(self):
